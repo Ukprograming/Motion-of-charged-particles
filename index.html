@@ -6,197 +6,193 @@
 <title>電場中の荷電粒子シミュレーション</title>
 <link rel="icon" href="data:," />
 <style>
-  :root {
-    --bg: #f4f7ff;
-    --panel: #ffffff;
-    --ink: #0b1a3a;
-    --muted: #4b5ea7;
-    --accent: #2b6bff;
-    --good: #1a9b4a;
-    --warn: #d9822b;
-    --bad: #e54861;
+  :root{
+    --bg:#f4f7ff; --panel:#fff; --ink:#0b1a3a; --muted:#4b5ea7; --accent:#2b6bff;
+    --good:#1a9b4a; --warn:#d9822b; --bad:#e54861;
   }
-  * { box-sizing: border-box; }
-  html, body { height: 100%; }
-  body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif; background: var(--bg); color: var(--ink); }
-  header { padding: 14px 18px; border-bottom: 1px solid #d9e3ff; background:#f8faff; display:flex; gap:12px; align-items:center; }
-  header h1 { font-size: 18px; margin: 0; font-weight: 700; letter-spacing: 0.02em; }
-  main { display: grid; grid-template-columns: 400px 1fr; gap: 0; height: calc(100% - 56px); }
-  aside { background: var(--panel); border-right: 1px solid #d9e3ff; overflow: auto; }
-  section.canvas-wrap { display: grid; grid-template-rows: 1fr auto auto; }
-  #canvas { display: block; width: 100%; height: 100%; background: radial-gradient(1200px 800px at 50% 55%, #f2f7ff 0%, #ffffff 70%); }
-  #graphWrap { display:none; border-top:1px solid #d9e3ff; background:#f2f7ff; }
-  #graph { display:block; width:100%; height:200px; }
-  .toolbar { display:flex; gap: 8px; padding:10px; border-top: 1px solid #d9e3ff; background: #eef3ff; }
-  .btn { background: #eef3ff; color: var(--ink); border: 1px solid #c9d6ff; padding: 8px 12px; border-radius: 10px; cursor: pointer; font-weight: 600; }
-  .btn:hover { background: #e3ecff; }
-  .btn.secondary { background: #f7f9ff; border-color:#d9e3ff; }
-  .btn.danger { background: #ffe9ee; border-color: #ffc4cf; color:#7b1022; }
-  .btn:disabled { opacity: 0.5; cursor:not-allowed; }
-
-  .panel { padding: 14px 16px; border-bottom: 1px dashed #d9e3ff; }
-  .panel h2 { font-size: 14px; color: var(--muted); margin: 0 0 8px; letter-spacing: 0.02em; }
-  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
-  .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 8px; }
-  .row4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; margin-bottom: 8px; }
-  label { font-size: 12px; opacity: 0.95; display:flex; align-items:center; justify-content:space-between; gap:8px; }
-  input[type="number"], select { width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #c9d6ff; background: #fbfdff; color: var(--ink); }
-  input[type="checkbox"] { transform: translateY(1px); }
-  .help { font-size: 12px; color: #4a5fb3; opacity: 0.9; line-height: 1.5; }
-  .small { font-size: 11px; opacity: 0.85; }
-  .legend { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-  .chip { font-size: 11px; padding: 2px 8px; border-radius: 999px; background:#f3f6ff; border:1px solid #dce6ff; color:#31406f; }
-  .chip .dot { display:inline-block; width:10px; height:10px; border-radius:999px; margin-right:6px; vertical-align:-1px; }
-  .dot-E { background: var(--accent); }
-  .dot-F { background: var(--good); }
-  .dot-vel { background: var(--warn); }
-  .dot-FB { background: #9b59ff; }
-  .note { padding: 8px 12px; border-radius: 8px; background:#f6f9ff; border:1px solid #dfe7ff; margin: 12px 0 0; color:#31406f; }
-  table.charges { width:100%; border-collapse: collapse; }
-  table.charges th, table.charges td { border-bottom: 1px solid #e6edff; padding: 6px; font-size:12px; text-align:center; }
-  table.charges input[type="number"] { width: 100%; padding: 6px; }
-  table.charges button { padding:4px 8px; }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;background:var(--bg);color:var(--ink)}
+  header{padding:14px 18px;border-bottom:1px solid #d9e3ff;background:#f8faff;display:flex;gap:12px;align-items:center}
+  header h1{font-size:18px;margin:0;font-weight:700;letter-spacing:.02em}
+  main{display:grid;grid-template-columns:400px 1fr;gap:0;height:calc(100% - 56px)}
+  aside{background:var(--panel);border-right:1px solid #d9e3ff;overflow:auto}
+  section.canvas-wrap{display:grid;grid-template-rows:1fr auto auto}
+  #canvas{display:block;width:100%;height:100%;background:radial-gradient(1200px 800px at 50% 55%,#f2f7ff 0%,#fff 70%)}
+  #graphWrap{display:none;border-top:1px solid #d9e3ff;background:#f2f7ff}
+  #graph{display:block;width:100%;height:200px}
+  .toolbar{display:flex;gap:8px;padding:10px;border-top:1px solid #d9e3ff;background:#eef3ff}
+  .btn{background:#eef3ff;color:var(--ink);border:1px solid #c9d6ff;padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:600}
+  .btn:hover{background:#e3ecff}
+  .btn.secondary{background:#f7f9ff;border-color:#d9e3ff}
+  .btn.danger{background:#ffe9ee;border-color:#ffc4cf;color:#7b1022}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .panel{padding:14px 16px;border-bottom:1px dashed #d9e3ff}
+  .panel h2{font-size:14px;color:var(--muted);margin:0 0 8px;letter-spacing:.02em}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+  .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px}
+  .row4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:8px}
+  label{font-size:12px;opacity:.95;display:flex;align-items:center;justify-content:space-between;gap:8px}
+  input[type="number"],select{width:100%;padding:8px;border-radius:8px;border:1px solid #c9d6ff;background:#fbfdff;color:var(--ink)}
+  input[type="checkbox"]{transform:translateY(1px)}
+  .help{font-size:12px;color:#4a5fb3;opacity:.9;line-height:1.5}
+  .small{font-size:11px;opacity:.85}
+  .legend{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .chip{font-size:11px;padding:2px 8px;border-radius:999px;background:#f3f6ff;border:1px solid #dce6ff;color:#31406f}
+  .chip .dot{display:inline-block;width:10px;height:10px;border-radius:999px;margin-right:6px;vertical-align:-1px}
+  .dot-E{background:var(--accent)}
+  .dot-F{background:var(--good)}
+  .dot-vel{background:var(--warn)}
+  .dot-FB{background:#9b59ff}
+  .note{padding:8px 12px;border-radius:8px;background:#f6f9ff;border:1px solid #dfe7ff;margin:12px 0 0;color:#31406f}
+  table.charges{width:100%;border-collapse:collapse}
+  table.charges th,table.charges td{border-bottom:1px solid #e6edff;padding:6px;font-size:12px;text-align:center}
+  table.charges input[type="number"]{width:100%;padding:6px}
+  table.charges button{padding:4px 8px}
 </style>
 </head>
 <body>
-  <header>
-    <h1>電場中の荷電粒子シミュレーション</h1>
-    <div class="legend small">
-      <span class="chip"><span class="dot dot-E"></span>電場</span>
-      <span class="chip"><span class="dot dot-F"></span>力</span>
-      <span class="chip"><span class="dot dot-FB"></span>磁力</span>
-      <span class="chip"><span class="dot dot-vel"></span>速度</span>
+<header>
+  <h1>電場中の荷電粒子シミュレーション</h1>
+  <div class="legend small">
+    <span class="chip"><span class="dot dot-E"></span>電場</span>
+    <span class="chip"><span class="dot dot-F"></span>力</span>
+    <span class="chip"><span class="dot dot-FB"></span>磁力</span>
+    <span class="chip"><span class="dot dot-vel"></span>速度</span>
+  </div>
+</header>
+<main>
+  <aside>
+    <div class="panel">
+      <h2>① 基本設定</h2>
+      <div class="row">
+        <label>キャンバス幅(px)<input type="number" id="w" value="980" min="300" step="10"></label>
+        <label>高さ(px)<input type="number" id="h" value="620" min="300" step="10"></label>
+      </div>
+      <div class="row">
+        <label>スケール(px/ m)<input type="number" id="pxPerM" value="60" min="5" max="400" step="1"></label>
+        <label>時間刻み dt(s)<input type="number" id="dt" value="0.01" min="0.0005" step="0.001"></label>
+      </div>
+      <div class="row">
+        <label>速度倍率×<input type="number" id="speedMul" value="1" min="0.1" step="0.1"></label>
+        <label>矢印スケール(px/単位)<input type="number" id="arrowScale" value="0.06" step="0.01"></label>
+      </div>
+      <div class="row">
+        <label><input type="checkbox" id="showGrid" checked> ガイド格子</label>
+        <label><input type="checkbox" id="showTrail" checked> 移動の軌跡</label>
+      </div>
+      <div class="row">
+        <label><input type="checkbox" id="showE" checked> 電場矢印</label>
+        <label><input type="checkbox" id="showF" checked> 力矢印（合力）</label>
+      </div>
+      <div class="row">
+        <label><input type="checkbox" id="showFB" checked> 磁力矢印</label>
+        <span></span>
+      </div>
+      <div class="row">
+        <label><input type="checkbox" id="showV" checked> 速度矢印</label>
+        <label><input type="checkbox" id="showFieldMap"> 電場ベクトル場(粗)</label>
+      </div>
+      <p class="help">座標系: 画面中心が原点(0,0)。右が +x、上が +y。単位は m, s, C, kg, N/C。</p>
     </div>
-  </header>
-  <main>
-    <aside>
-      <div class="panel">
-        <h2>① 基本設定</h2>
+
+    <div class="panel">
+      <h2>② 粒子 (テスト荷電粒子)</h2>
+      <div class="row">
+        <label>質量 m (kg)<input type="number" id="m" value="1e-6" step="1e-7"></label>
+        <label>電気量 q (C)<input type="number" id="q" value="1e-6" step="1e-7"></label>
+      </div>
+      <div class="row">
+        <label>初期位置 x₀ (m)<input type="number" id="x0" value="-3" step="0.1"></label>
+        <label>初期位置 y₀ (m)<input type="number" id="y0" value="0" step="0.1"></label>
+      </div>
+      <div class="row">
+        <label>初速度 vₓ₀ (m/s)<input type="number" id="vx0" value="4" step="0.1"></label>
+        <label>初速度 v_y₀ (m/s)<input type="number" id="vy0" value="0" step="0.1"></label>
+      </div>
+      <p class="small">※ 停止中にキャンバスをクリックすると「初期位置」をその場所に設定できます。</p>
+    </div>
+
+    <div class="panel">
+      <h2>③ 電場</h2>
+      <div class="row">
+        <label>
+          モード
+          <select id="fieldMode">
+            <option value="uniform">一様な電場</option>
+            <option value="points">点電荷の電場（複数）</option>
+          </select>
+        </label>
+        <span></span>
+      </div>
+      <div id="uniformWrap">
         <div class="row">
-          <label>キャンバス幅(px)<input type="number" id="w" value="980" min="300" step="10"></label>
-          <label>高さ(px)<input type="number" id="h" value="620" min="300" step="10"></label>
+          <label>Ex (N/C)<input type="number" id="Ex" value="0" step="1"></label>
+          <label>Ey (N/C)<input type="number" id="Ey" value="500" step="1"></label>
         </div>
+        <p class="help small">一様電場 (Ex, Ey)。正の q は電場の向きに力を受けます。</p>
+      </div>
+      <div id="pointsWrap" style="display:none">
         <div class="row">
-          <label>スケール(px/ m)<input type="number" id="pxPerM" value="60" min="5" max="400" step="1"></label>
-          <label>時間刻み dt(s)<input type="number" id="dt" value="0.01" min="0.0005" step="0.001"></label>
-        </div>
-        <div class="row">
-          <label>速度倍率×<input type="number" id="speedMul" value="1" min="0.1" step="0.1"></label>
-          <label>矢印スケール(px/単位)<input type="number" id="arrowScale" value="0.06" step="0.01"></label>
-        </div>
-        <div class="row">
-          <label><input type="checkbox" id="showGrid" checked> ガイド格子</label>
-          <label><input type="checkbox" id="showTrail" checked> 移動の軌跡</label>
-        </div>
-        <div class="row">
-          <label><input type="checkbox" id="showE" checked> 電場矢印</label>
-          <label><input type="checkbox" id="showF" checked> 力矢印（合力）</label>
-        </div>
-        <div class="row">
-          <label><input type="checkbox" id="showFB" checked> 磁力矢印</label>
+          <label>最小距離 r<sub>min</sub> (m)<input type="number" id="rmin" value="0.05" step="0.01"></label>
           <span></span>
         </div>
-        <div class="row">
-          <label><input type="checkbox" id="showV" checked> 速度矢印</label>
-          <label><input type="checkbox" id="showFieldMap"> 電場ベクトル場(粗)</label>
+        <div class="help small">点電荷を複数配置できます。Q の符号で色が変わります（+: ピンク、−: シアン）。</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin:6px 0 4px;">
+          <strong class="small" style="opacity:.9">点電荷リスト</strong>
+          <button class="btn" id="addChargeBtn">＋ 追加</button>
         </div>
-        <p class="help">座標系: 画面中心が原点(0,0)。右が +x、上が +y。単位は m, s, C, kg, N/C。</p>
+        <div id="chargesHost"></div>
       </div>
 
-      <div class="panel">
-        <h2>② 粒子 (テスト荷電粒子)</h2>
-        <div class="row">
-          <label>質量 m (kg)<input type="number" id="m" value="1e-6" step="1e-7"></label>
-          <label>電気量 q (C)<input type="number" id="q" value="1e-6" step="1e-7"></label>
-        </div>
-        <div class="row">
-          <label>初期位置 x₀ (m)<input type="number" id="x0" value="-3" step="0.1"></label>
-          <label>初期位置 y₀ (m)<input type="number" id="y0" value="0" step="0.1"></label>
-        </div>
-        <div class="row">
-          <label>初速度 vₓ₀ (m/s)<input type="number" id="vx0" value="4" step="0.1"></label>
-          <label>初速度 v_y₀ (m/s)<input type="number" id="vy0" value="0" step="0.1"></label>
-        </div>
-        <p class="small">※ 停止中にキャンバスをクリックすると「初期位置」をその場所に設定できます。</p>
-      </div>
+      <div class="note small">ベクトル場の描画密度は軽量化のため粗めです。解析を重視する場合は <em>電場矢印</em>と<em>力矢印</em>のみの表示が快適です。</div>
 
-      <div class="panel">
-        <h2>③ 電場</h2>
-        <div class="row">
-          <label>
-            モード
-            <select id="fieldMode">
-              <option value="uniform">一様な電場</option>
-              <option value="points">点電荷の電場（複数）</option>
-            </select>
-          </label>
-          <span></span>
-        </div>
-        <div id="uniformWrap">
-          <div class="row">
-            <label>Ex (N/C)<input type="number" id="Ex" value="0" step="1"></label>
-            <label>Ey (N/C)<input type="number" id="Ey" value="500" step="1"></label>
-          </div>
-          <p class="help small">一様電場 (Ex, Ey)。正の q は電場の向きに力を受けます。</p>
-        </div>
-        <div id="pointsWrap" style="display:none">
-          <div class="row">
-            <label>最小距離 r<sub>min</sub> (m)<input type="number" id="rmin" value="0.05" step="0.01"></label>
-            <span></span>
-          </div>
-          <div class="help small">点電荷を複数配置できます。Q の符号で色が変わります（+: ピンク、−: シアン）。</div>
-          <div style="display:flex; justify-content:space-between; align-items:center; margin:6px 0 4px;">
-            <strong class="small" style="opacity:.9">点電荷リスト</strong>
-            <button class="btn" id="addChargeBtn">＋ 追加</button>
-          </div>
-          <div id="chargesHost"></div>
-        </div>
-        <div class="note small">ベクトル場の描画密度は軽量化のため粗めです。解析を重視する場合は <em>電場矢印</em>と<em>力矢印</em>のみの表示が快適です。</div>
-          <div class="row">
-            <label>磁場 Bz (T)<input type="number" id="Bz" value="0" step="0.01"></label>
-            <span class="small">z軸方向。正は画面の手前向き、負は画面の奥向き。</span>
-          </div>
-          <div class="row">
-            <label><input type="checkbox" id="showB" checked> 磁場の可視化（× / ・）</label>
-            <span class="small">Bz>0: ドット（・）／Bz<0: バツ（×）</span>
-          </div>
+      <div class="row">
+        <label>磁場 Bz (T)<input type="number" id="Bz" value="0" step="0.01"></label>
+        <span class="small">z軸方向。正は画面の手前向き、負は画面の奥向き。</span>
       </div>
+      <div class="row">
+        <label><input type="checkbox" id="showB" checked> 磁場の可視化（× / ・）</label>
+        <span class="small">Bz&gt;0: ドット（・）／Bz&lt;0: バツ（×）</span>
+      </div>
+    </div>
 
-      <div class="panel">
-        <h2>④ 操作</h2>
-        <div class="row">
-          <button class="btn" id="startBtn">▶ スタート</button>
-          <button class="btn secondary" id="resetBtn">⟲ リセット</button>
-        </div>
-        <div class="row">
-          <button class="btn" id="pauseBtn">⏸ 一時停止</button>
-          <button class="btn danger" id="clearTrailBtn">軌跡クリア</button>
-        </div>
-        <div class="row">
-          <button class="btn" id="plotVxBtn">V-x グラフ</button>
-          <button class="btn" id="plotVyBtn">V-y グラフ</button>
-        </div>
-        <div class="row">
-          <button class="btn secondary" id="hideGraphBtn">グラフ非表示/クリア</button>
-          <span class="small" id="graphInfo"></span>
-        </div>
-        <p class="small">スペースキー: スタート/一時停止切替</p>
+    <div class="panel">
+      <h2>④ 操作</h2>
+      <div class="row">
+        <button class="btn" id="startBtn">▶ スタート</button>
+        <button class="btn secondary" id="resetBtn">⟲ リセット</button>
       </div>
-    </aside>
+      <div class="row">
+        <button class="btn" id="pauseBtn">⏸ 一時停止</button>
+        <button class="btn danger" id="clearTrailBtn">軌跡クリア</button>
+      </div>
+      <div class="row">
+        <button class="btn" id="plotVxBtn">V-x グラフ</button>
+        <button class="btn" id="plotVyBtn">V-y グラフ</button>
+      </div>
+      <div class="row">
+        <button class="btn secondary" id="hideGraphBtn">グラフ非表示/クリア</button>
+        <span class="small" id="graphInfo"></span>
+      </div>
+      <p class="small">スペースキー: スタート/一時停止切替</p>
+    </div>
+  </aside>
 
-    <section class="canvas-wrap">
-      <canvas id="canvas" width="980" height="620" aria-label="simulation canvas"></canvas>
-      <div id="graphWrap"><canvas id="graph" width="980" height="200"></canvas></div>
-      <div class="toolbar small">
-        <span>状態: <strong id="status">停止中</strong></span>
-        <span style="margin-left:auto">時刻 t = <span id="tDisp">0.00</span> s</span>
-      </div>
-    </section>
-  </main>
+  <section class="canvas-wrap">
+    <canvas id="canvas" width="980" height="620" aria-label="simulation canvas"></canvas>
+    <div id="graphWrap"><canvas id="graph" width="980" height="200"></canvas></div>
+    <div class="toolbar small">
+      <span>状態: <strong id="status">停止中</strong></span>
+      <span style="margin-left:auto">時刻 t = <span id="tDisp">0.00</span> s</span>
+    </div>
+  </section>
+</main>
 
 <script>
 (() => {
   'use strict';
+
   // ==== DOM refs ====
   const el = (id) => document.getElementById(id);
   const cvs = el('canvas');
@@ -223,350 +219,423 @@
   const plotVxBtn = el('plotVxBtn'), plotVyBtn = el('plotVyBtn'), hideGraphBtn = el('hideGraphBtn');
 
   // ==== Physics constants ====
-  const K = 8.9875517923e9; // Coulomb's constant (N·m^2/C^2)
+  const K = 8.9875517923e9; // Coulomb's constant
 
   // ==== State ====
   const state = {
-    running: false,
-    t: 0,
-    pxPerM: +pxPerMIn.value,
-    dt: +dtIn.value,
-    speedMul: +speedMulIn.value,
-    arrowScale: +arrowScaleIn.value,
-    fieldMode: fieldModeSel.value, // 'uniform' | 'points'
-    showGrid: showGridIn.checked,
-    showTrail: showTrailIn.checked,
-    showE: showEIn.checked,
-    showF: showFIn.checked,
-    showV: showVIn.checked,
-    showFieldMap: showFieldMapIn.checked,
-    showB: showBIn.checked,
-    showFB: showFBIn.checked,
+    running:false,
+    t:0,
+    pxPerM:+pxPerMIn.value,
+    dt:+dtIn.value,
+    speedMul:+speedMulIn.value,
+    arrowScale:+arrowScaleIn.value,
+    fieldMode:fieldModeSel.value,
+    showGrid:showGridIn.checked,
+    showTrail:showTrailIn.checked,
+    showE:showEIn.checked,
+    showF:showFIn.checked,
+    showV:showVIn.checked,
+    showFieldMap:showFieldMapIn.checked,
+    showB:showBIn.checked,
+    showFB:showFBIn.checked,
     // particle
-    p: { m: +mIn.value, q: +qIn.value, x: +x0In.value, y: +y0In.value, vx: +vx0In.value, vy: +vy0In.value },
-    // initial snapshot for reset
-    init: null,
+    p:{ m:+mIn.value, q:+qIn.value, x:+x0In.value, y:+y0In.value, vx:+vx0In.value, vy:+vy0In.value },
     // field params
-    uniform: { Ex: +ExIn.value, Ey: +EyIn.value },
-    points: { rmin: +rminIn.value, list: [ { Q: 1e-6, xQ: 0, yQ: 0 } ] },
-    Bz: +BzIn.value, // ← 初期化を追加
-    trail: [],
-    graphMode: null, // 'x' | 'y' | null
+    uniform:{ Ex:+ExIn.value, Ey:+EyIn.value },
+    points:{ rmin:+rminIn.value, list:[{ Q:1e-6, xQ:0, yQ:0 }] },
+    Bz:+BzIn.value,
+    trail:[],
+    graphMode:null
   };
+
+  // Snapshot for hard reset (現在は未使用)
   state.init = JSON.parse(JSON.stringify({
-    p: state.p,
-    uniform: state.uniform,
-    points: state.points,
-    pxPerM: state.pxPerM,
-    dt: state.dt,
-    speedMul: state.speedMul,
-    arrowScale: state.arrowScale,
-    fieldMode: state.fieldMode,
+    p:state.p, uniform:state.uniform, points:state.points, pxPerM:state.pxPerM,
+    dt:state.dt, speedMul:state.speedMul, arrowScale:state.arrowScale, fieldMode:state.fieldMode
   }));
 
   // ==== Helpers ====
-  function worldToCanvas(xm, ym) {
+  function worldToCanvas(xm, ym){
     const pxpm = state.pxPerM;
-    const cx = cvs.width / 2 + xm * pxpm;
-    const cy = cvs.height / 2 - ym * pxpm;
-    return [cx, cy];
+    return [cvs.width/2 + xm*pxpm, cvs.height/2 - ym*pxpm];
   }
-  function canvasToWorld(cx, cy) {
+  function canvasToWorld(cx, cy){
     const pxpm = state.pxPerM;
-    const xm = (cx - cvs.width/2) / pxpm;
-    const ym = (cvs.height/2 - cy) / pxpm;
-    return [xm, ym];
+    return [(cx - cvs.width/2)/pxpm, (cvs.height/2 - cy)/pxpm];
   }
-
-  function setCanvasSize() {
+  function setCanvasSize(){
     const W = Math.max(300, +wIn.value|0), H = Math.max(300, +hIn.value|0);
     cvs.width = W; cvs.height = H;
-    graph.width = W; // graph width follows canvas width
+    graph.width = W;
   }
 
   // ==== Charges UI ====
-  function renderChargesUI() {
+  function renderChargesUI(){
     const tbl = document.createElement('table');
     tbl.className = 'charges';
     const thead = document.createElement('thead');
     thead.innerHTML = '<tr><th>#</th><th>Q (C)</th><th>x (m)</th><th>y (m)</th><th></th></tr>';
     tbl.appendChild(thead);
     const tbody = document.createElement('tbody');
-    state.points.list.forEach((c, i) => {
+    state.points.list.forEach((c,i)=>{
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td>${i+1}</td>
         <td><input type="number" step="1e-7" value="${c.Q}"></td>
         <td><input type="number" step="0.1" value="${c.xQ}"></td>
         <td><input type="number" step="0.1" value="${c.yQ}"></td>
-        <td><button class="btn danger" data-act="remove" data-idx="${i}">×</button></td>
-      `;
-      // attach dataset markers for inputs
-      [...tr.querySelectorAll('input')].forEach((inp, j) => {
-        inp.dataset.idx = i;
-        inp.dataset.kind = ['Q','xQ','yQ'][j];
+        <td><button class="btn danger" data-act="remove" data-idx="${i}">×</button></td>`;
+      [...tr.querySelectorAll('input')].forEach((inp,j)=>{
+        inp.dataset.idx = i; inp.dataset.kind = ['Q','xQ','yQ'][j];
       });
       tbody.appendChild(tr);
     });
     tbl.appendChild(tbody);
-    chargesHost.innerHTML = '';
-    chargesHost.appendChild(tbl);
+    chargesHost.innerHTML = ''; chargesHost.appendChild(tbl);
   }
-
-  function syncChargesFromUI() {
+  function syncChargesFromUI(){
     const rows = chargesHost.querySelectorAll('tbody tr');
     const arr = [];
-    rows.forEach(row => {
+    rows.forEach(row=>{
       const ins = row.querySelectorAll('input');
-      const Q = +ins[0].value, xQ = +ins[1].value, yQ = +ins[2].value;
-      arr.push({ Q, xQ, yQ });
+      arr.push({ Q:+ins[0].value, xQ:+ins[1].value, yQ:+ins[2].value });
     });
     state.points.list = arr;
     state.points.rmin = +rminIn.value;
   }
-
-  chargesHost.addEventListener('input', (e) => {
-    if (e.target.tagName === 'INPUT') {
-      syncChargesFromUI();
-      if (!state.running) state.trail = []; // keep static preview clean
-    }
+  chargesHost?.addEventListener('input', (e)=>{
+    if(e.target.tagName==='INPUT'){ syncChargesFromUI(); if(!state.running) state.trail=[]; }
   });
-  chargesHost.addEventListener('click', (e) => {
+  chargesHost?.addEventListener('click', (e)=>{
     const btn = e.target.closest('button[data-act="remove"]');
-    if (btn) {
-      const idx = +btn.dataset.idx;
-      state.points.list.splice(idx, 1);
-      renderChargesUI();
-      syncChargesFromUI();
-    }
+    if(btn){ state.points.list.splice(+btn.dataset.idx,1); renderChargesUI(); syncChargesFromUI(); }
   });
-  addChargeBtn.addEventListener('click', () => {
-    state.points.list.push({ Q: 1e-6, xQ: (Math.random()*2-1)*2, yQ: (Math.random()*2-1)*2 });
-    renderChargesUI();
-    syncChargesFromUI();
+  addChargeBtn?.addEventListener('click', ()=>{
+    state.points.list.push({ Q:1e-6, xQ:(Math.random()*2-1)*2, yQ:(Math.random()*2-1)*2 });
+    renderChargesUI(); syncChargesFromUI();
   });
 
   // ==== Field / Potential ====
-  function fieldAt(x, y) {
-    if (state.fieldMode === 'uniform') {
-      return { Ex: state.uniform.Ex, Ey: state.uniform.Ey };
-    } else {
-      const rmin = state.points.rmin;
-      let Ex = 0, Ey = 0;
-      for (const c of state.points.list) {
-        let rx = x - c.xQ, ry = y - c.yQ;
-        const r2 = rx*rx + ry*ry; let r = Math.sqrt(r2);
-        const rSafe = Math.max(r, rmin);
-        const r3 = rSafe*rSafe*rSafe;
-        const kQ = K * c.Q;
-        Ex += kQ * rx / r3;
-        Ey += kQ * ry / r3;
-      }
-      return { Ex, Ey };
+  function fieldAt(x,y){
+    if(state.fieldMode==='uniform') return { Ex:state.uniform.Ex, Ey:state.uniform.Ey };
+    const rmin = state.points.rmin;
+    let Ex=0, Ey=0;
+    for(const c of state.points.list){
+      let rx=x-c.xQ, ry=y-c.yQ;
+      const r = Math.hypot(rx,ry);
+      const rSafe = Math.max(r, rmin);
+      const r3 = rSafe*rSafe*rSafe;
+      const kQ = K*c.Q;
+      Ex += kQ*rx/r3; Ey += kQ*ry/r3;
     }
+    return { Ex, Ey };
   }
-  function potentialAt(x, y) {
-    if (state.fieldMode === 'uniform') {
-      // Choose V(0,0)=0; then V(x,y) = -E·r
-      return -(state.uniform.Ex * x + state.uniform.Ey * y);
-    } else {
-      const rmin = state.points.rmin;
-      let V = 0;
-      for (const c of state.points.list) {
-        const rx = x - c.xQ, ry = y - c.yQ;
-        const r = Math.hypot(rx, ry);
-        const rSafe = Math.max(r, rmin);
-        V += K * c.Q / rSafe;
-      }
-      return V;
+  function potentialAt(x,y){
+    if(state.fieldMode==='uniform') return -(state.uniform.Ex*x + state.uniform.Ey*y);
+    const rmin = state.points.rmin; let V=0;
+    for(const c of state.points.list){
+      const r = Math.hypot(x-c.xQ, y-c.yQ);
+      V += K*c.Q/Math.max(r, rmin);
     }
+    return V;
   }
 
-  function stepPhysics(dt) {
+  // Stable integrator（Boris法）
+  function stepPhysics(dt){
     const { p } = state;
     const { Ex, Ey } = fieldAt(p.x, p.y);
     const Bz = state.Bz || 0;
-    const qm = p.q / p.m;
+    const qm = p.q/p.m;
 
-    // Boris pusher (energy-preserving in constant B)
-    const half = 0.5 * dt * qm;
-    // v- = v + (qE/m) dt/2
-    let vxm = p.vx + half * Ex;
-    let vym = p.vy + half * Ey;
+    const half = 0.5*dt*qm;
+    let vxm = p.vx + half*Ex;
+    let vym = p.vy + half*Ey;
 
-    if (Bz !== 0) {
-      const t = half * Bz;           // (q/m) B dt / 2
-      const s = 2 * t / (1 + t*t);   // rotation helper
-      // v' = v- + v- × t (t along z)
-      const vpx = vxm + vym * t;
-      const vpy = vym - vxm * t;
-      // v+ = v- + v' × s
-      vxm = vxm + vpy * s;
-      vym = vym - vpx * s;
+    if(Bz!==0){
+      const t = half*Bz;
+      const s = 2*t/(1+t*t);
+      const vpx = vxm + vym*t;
+      const vpy = vym - vxm*t;
+      vxm = vxm + vpy*s;
+      vym = vym - vpx*s;
     }
+    p.vx = vxm + half*Ex;
+    p.vy = vym + half*Ey;
 
-    // v^{n+1} = v+ + (qE/m) dt/2
-    p.vx = vxm + half * Ex;
-    p.vy = vym + half * Ey;
+    p.x += p.vx*dt;
+    p.y += p.vy*dt;
 
-    // x^{n+1} = x^n + v^{n+1} dt
-    p.x += p.vx * dt;
-    p.y += p.vy * dt;
-
-    if (state.showTrail) {
-      state.trail.push([p.x, p.y]);
-      if (state.trail.length > 2000) state.trail.shift();
+    if(state.showTrail){
+      state.trail.push([p.x,p.y]);
+      if(state.trail.length>2000) state.trail.shift();
     }
-
     state.t += dt;
 
-    const marginM = 0.5 * (1/state.pxPerM * 40);
+    // 画面外で停止
+    const marginM = 0.5*(1/state.pxPerM*40);
     const xMax = (cvs.width/2)/state.pxPerM + marginM;
     const yMax = (cvs.height/2)/state.pxPerM + marginM;
-    if (Math.abs(p.x) > xMax || Math.abs(p.y) > yMax) {
-      state.running = false;
-      statusEl.textContent = '停止 (画面外)';
-      startBtn.textContent = '▶ スタート';
+    if(Math.abs(p.x)>xMax || Math.abs(p.y)>yMax){
+      state.running=false; statusEl.textContent='停止 (画面外)'; startBtn.textContent='▶ スタート';
     }
   }
 
   // ==== Drawing ====
-  function clear() { ctx.clearRect(0,0,cvs.width,cvs.height); }
-  function drawGrid() {
-    if (!state.showGrid) return;
+  function clear(){ ctx.clearRect(0,0,cvs.width,cvs.height); }
+  function drawGrid(){
+    if(!state.showGrid) return;
     const gapPx = Math.max(30, Math.min(100, state.pxPerM));
     ctx.save();
-    ctx.strokeStyle = '#d4ddff';
-    ctx.lineWidth = 1;
-    ctx.globalAlpha = 0.6;
-    // grid lines
-    for (let x = Math.floor(cvs.width/2 % gapPx); x < cvs.width; x += gapPx) {
-      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, cvs.height); ctx.stroke();
-    }
-    for (let y = Math.floor(cvs.height/2 % gapPx); y < cvs.height; y += gapPx) {
-      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(cvs.width, y); ctx.stroke();
-    }
-    // axes
-    ctx.strokeStyle = '#6b8cff';
-    ctx.lineWidth = 1.5;
-    // x-axis
-    ctx.beginPath(); ctx.moveTo(0, cvs.height/2); ctx.lineTo(cvs.width, cvs.height/2); ctx.stroke();
-    // y-axis
-    ctx.beginPath(); ctx.moveTo(cvs.width/2, 0); ctx.lineTo(cvs.width/2, cvs.height); ctx.stroke();
+    ctx.strokeStyle='#d4ddff'; ctx.lineWidth=1; ctx.globalAlpha=.6;
+    for(let x=Math.floor(cvs.width/2 % gapPx); x<cvs.width; x+=gapPx){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,cvs.height); ctx.stroke(); }
+    for(let y=Math.floor(cvs.height/2 % gapPx); y<cvs.height; y+=gapPx){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(cvs.width,y); ctx.stroke(); }
+    ctx.strokeStyle='#6b8cff'; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.moveTo(0,cvs.height/2); ctx.lineTo(cvs.width,cvs.height/2); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cvs.width/2,0); ctx.lineTo(cvs.width/2,cvs.height); ctx.stroke();
     ctx.restore();
   }
-
-  function drawArrow(cx, cy, vx, vy, options) {
-    const { color = '#fff', headSize = 10, lineWidth = 2, maxLen = 140 } = options || {};
-    // clamp
-    let len = Math.hypot(vx, vy);
-    if (len < 1e-9) return;
-    const scale = Math.min(1, maxLen / len);
-    vx *= scale; vy *= scale; len *= scale;
-
-    ctx.save();
-    ctx.translate(cx, cy);
+  function drawArrow(cx,cy,vx,vy,opt){
+    const { color='#fff', headSize=10, lineWidth=2, maxLen=140 } = opt||{};
+    let len = Math.hypot(vx,vy); if(len<1e-9) return;
+    const scale = Math.min(1, maxLen/len); vx*=scale; vy*=scale;
+    ctx.save(); ctx.translate(cx,cy);
+    ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(vx,vy);
+    ctx.strokeStyle=color; ctx.lineWidth=lineWidth; ctx.stroke();
+    const ang = Math.atan2(vy,vx);
     ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.lineTo(vx, vy);
-    ctx.strokeStyle = color;
-    ctx.lineWidth = lineWidth;
-    ctx.stroke();
-
-    // arrow head
-    const angle = Math.atan2(vy, vx);
-    ctx.beginPath();
-    ctx.moveTo(vx, vy);
-    ctx.lineTo(vx - headSize * Math.cos(angle - Math.PI/6), vy - headSize * Math.sin(angle - Math.PI/6));
-    ctx.lineTo(vx - headSize * Math.cos(angle + Math.PI/6), vy - headSize * Math.sin(angle + Math.PI/6));
-    ctx.closePath();
-    ctx.fillStyle = color;
-    ctx.fill();
+    ctx.moveTo(vx,vy);
+    ctx.lineTo(vx - headSize*Math.cos(ang-Math.PI/6), vy - headSize*Math.sin(ang-Math.PI/6));
+    ctx.lineTo(vx - headSize*Math.cos(ang+Math.PI/6), vy - headSize*Math.sin(ang+Math.PI/6));
+    ctx.closePath(); ctx.fillStyle=color; ctx.fill();
     ctx.restore();
   }
-
-  function drawBField() {
-    if (!state.showB || !state.Bz) return;
-    const Bz = state.Bz;
-    const gap = 70; // px
+  function drawBField(){
+    if(!state.showB || !state.Bz) return;
+    const Bz = state.Bz, gap=70;
     const size = Math.max(2, Math.min(10, 3 + 6*Math.tanh(Math.abs(Bz))));
-    const color = Bz > 0 ? '#2b6bff' : '#e54861';
+    const color = Bz>0 ? '#2b6bff' : '#e54861';
+    ctx.save(); ctx.strokeStyle=color; ctx.fillStyle=color; ctx.lineWidth=1.5;
+    for(let y=gap/2; y<cvs.height; y+=gap){
+      for(let x=gap/2; x<cvs.width; x+=gap){
+        if(Bz>0){ ctx.beginPath(); ctx.arc(x,y,size/2,0,Math.PI*2); ctx.fill(); }
+        else{ ctx.beginPath(); ctx.moveTo(x-size/2,y-size/2); ctx.lineTo(x+size/2,y+size/2);
+              ctx.moveTo(x-size/2,y+size/2); ctx.lineTo(x+size/2,y-size/2); ctx.stroke(); }
+      }
+    }
+    ctx.restore();
+  }
+  function drawFieldMap(){
+    if(!state.showFieldMap) return;
     ctx.save();
-    ctx.strokeStyle = color;
-    ctx.fillStyle = color;
-    ctx.lineWidth = 1.5;
-    for (let y = gap/2; y < cvs.height; y += gap) {
-      for (let x = gap/2; x < cvs.width; x += gap) {
-        if (Bz > 0) {
-          ctx.beginPath();
-          ctx.arc(x, y, size/2, 0, Math.PI*2);
-          ctx.fill();
-        } else {
-          ctx.beginPath();
-          ctx.moveTo(x - size/2, y - size/2);
-          ctx.lineTo(x + size/2, y + size/2);
-          ctx.moveTo(x - size/2, y + size/2);
-          ctx.lineTo(x + size/2, y - size/2);
-          ctx.stroke();
+    const gap=80;
+    for(let y=gap/2; y<cvs.height; y+=gap){
+      for(let x=gap/2; x<cvs.width; x+=gap){
+        const [xm,ym] = canvasToWorld(x,y);
+        const { Ex,Ey } = fieldAt(xm,ym);
+        if(isFinite(Ex)&&isFinite(Ey)){
+          const s = state.arrowScale;
+          drawArrow(x,y, Ex*s, -Ey*s, { color:'#7fb6ff', lineWidth:1.2, headSize:8, maxLen:60 });
         }
       }
     }
     ctx.restore();
   }
-
-  function drawFieldMap() {
-    if (!state.showFieldMap) return;
-    ctx.save();
-    const gap = 80; // px
-    const arrow = (x, y, Ex, Ey) => {
-      const s = state.arrowScale;
-      drawArrow(x, y, Ex * s, -Ey * s, { color: '#7fb6ff', lineWidth: 1.2, headSize: 8, maxLen: 60 });
-    };
-    for (let y = gap/2; y < cvs.height; y += gap) {
-      for (let x = gap/2; x < cvs.width; x += gap) {
-        const [xm, ym] = canvasToWorld(x, y);
-        const { Ex, Ey } = fieldAt(xm, ym);
-        if (isFinite(Ex) && isFinite(Ey)) arrow(x, y, Ex, Ey);
-      }
-    }
-    ctx.restore();
-  }
-
-  function drawParticle() {
+  function drawParticle(){
     const { p } = state;
-    const [cx, cy] = worldToCanvas(p.x, p.y);
+    const [cx,cy] = worldToCanvas(p.x,p.y);
     // body
     ctx.save();
-    ctx.beginPath();
-    ctx.arc(cx, cy, 6, 0, Math.PI*2);
-    ctx.fillStyle = '#ffd166';
-    ctx.strokeStyle = '#f0a500';
-    ctx.lineWidth = 2;
-    ctx.fill();
-    ctx.stroke();
+    ctx.beginPath(); ctx.arc(cx,cy,6,0,Math.PI*2);
+    ctx.fillStyle='#ffd166'; ctx.strokeStyle='#f0a500'; ctx.lineWidth=2; ctx.fill(); ctx.stroke();
     ctx.restore();
 
-    const { Ex, Ey } = fieldAt(p.x, p.y);
-    const Bz = state.Bz || 0;
+    const { Ex,Ey } = fieldAt(p.x,p.y);
+    const Bz = state.Bz||0;
 
     // Forces
-    const Fex = p.q * Ex, Fey = p.q * Ey;                   // electric
-    const Fbx = p.q * (p.vy * Bz), Fby = p.q * (-p.vx * Bz); // magnetic
-    const Fx = Fex + Fbx, Fy = Fey + Fby;                    // total
+    const Fex = p.q*Ex, Fey = p.q*Ey;
+    const Fbx = p.q*(p.vy*Bz), Fby = p.q*(-p.vx*Bz);
+    const Fx = Fex + Fbx, Fy = Fey + Fby;
 
-    const s = state.arrowScale; // px per unit (E: N/C, F: N)
-    if (state.showE)  drawArrow(cx, cy, Ex * s,    -Ey * s,    { color: '#2b6bff', lineWidth: 2, headSize: 12, maxLen: 150 });
-    if (state.showF)  drawArrow(cx, cy, Fx * s*0.15, -Fy * s*0.15, { color: '#1a9b4a', lineWidth: 2, headSize: 12, maxLen: 150 });
-    if (state.showFB) drawArrow(cx, cy, Fbx * s*0.15, -Fby * s*0.15, { color: '#9b59ff', lineWidth: 2, headSize: 12, maxLen: 150 });
-    if (state.showV) {
-      const vpx = p.vx * 0.5 * state.pxPerM; // 0.5 sec visualized
-      const vpy = p.vy * 0.5 * state.pxPerM;
-      drawArrow(cx, cy, vpx, -vpy, { color: '#d9822b', lineWidth: 2, headSize: 12, maxLen: 150 });
+    const s = state.arrowScale;
+    if(state.showE)  drawArrow(cx,cy,  Ex*s,   -Ey*s,   { color:'#2b6bff', lineWidth:2, headSize:12, maxLen:150 });
+    if(state.showF)  drawArrow(cx,cy, Fx*s*0.15,-Fy*s*0.15,{ color:'#1a9b4a', lineWidth:2, headSize:12, maxLen:150 });
+    if(state.showFB) drawArrow(cx,cy, Fbx*s*0.15,-Fby*s*0.15,{ color:'#9b59ff', lineWidth:2, headSize:12, maxLen:150 });
+    if(state.showV){
+      const vpx = p.vx*0.5*state.pxPerM, vpy = p.vy*0.5*state.pxPerM;
+      drawArrow(cx,cy, vpx, -vpy, { color:'#d9822b', lineWidth:2, headSize:12, maxLen:150 });
     }
-  } // ← ここで関数は終わり（余分な } は削除）
+  }
 
-  function drawPointCharges() {
-    if (state.fieldMode !== 'points') return;
-    for (const c of state.points.list) {
-      const [cx, cy] = worldToCanvas(c.xQ, c.yQ);
-      ctx.save
+  function drawPointCharges(){
+    if(state.fieldMode!=='points') return;
+    for(const c of state.points.list){
+      const [cx,cy] = worldToCanvas(c.xQ,c.yQ);
+      ctx.save();
+      ctx.beginPath(); ctx.arc(cx,cy,7,0,Math.PI*2);
+      ctx.fillStyle = (c.Q>=0)?'#ff6b8a':'#6bf7ff';
+      ctx.strokeStyle='#fff'; ctx.lineWidth=1.5; ctx.fill(); ctx.stroke();
+      ctx.font='12px system-ui, -apple-system, Segoe UI, Roboto';
+      ctx.fillStyle='#102040'; ctx.textAlign='center'; ctx.textBaseline='top';
+      ctx.fillText(c.Q>=0?'+Q':'−Q', cx, cy+8);
+      ctx.restore();
+    }
+  }
+  function drawTrail(){
+    if(!state.showTrail || state.trail.length<2) return;
+    ctx.save(); ctx.beginPath();
+    for(let i=0;i<state.trail.length;i++){
+      const [x,y] = state.trail[i]; const [cx,cy] = worldToCanvas(x,y);
+      if(i===0) ctx.moveTo(cx,cy); else ctx.lineTo(cx,cy);
+    }
+    ctx.strokeStyle='rgba(80,100,180,.55)'; ctx.lineWidth=1.6; ctx.stroke(); ctx.restore();
+  }
+  function render(){
+    clear(); drawGrid(); drawBField(); drawFieldMap(); drawTrail(); drawPointCharges(); drawParticle();
+  }
+
+  // ==== Graphing (V along x or y) ====
+  function ensureGraphShown(){ graphWrap.style.display='block'; graph.height=220; }
+  function hideGraph(){ graphWrap.style.display='none'; gctx.clearRect(0,0,graph.width,graph.height); graphInfo.textContent=''; state.graphMode=null; }
+  function plotPotential(axis){
+    ensureGraphShown(); state.graphMode=axis;
+    const W=graph.width, H=graph.height; gctx.clearRect(0,0,W,H);
+    const margin=36;
+    const xRange=(cvs.width/2)/state.pxPerM, yRange=(cvs.height/2)/state.pxPerM;
+    const N=600, xs=new Array(N), Vs=new Array(N);
+    let minV=Infinity, maxV=-Infinity;
+    for(let i=0;i<N;i++){
+      const t=i/(N-1); let x=0,y=0;
+      if(axis==='x'){ x=-xRange+2*xRange*t; y=0; } else { x=0; y=-yRange+2*yRange*t; }
+      const V = potentialAt(x,y); xs[i]=t; Vs[i]=V;
+      if(isFinite(V)){ if(V<minV)minV=V; if(V>maxV)maxV=V; }
+    }
+    if(!isFinite(minV)||!isFinite(maxV)||minV===maxV){ minV=-1; maxV=1; }
+    const pad=.05*(maxV-minV||1); minV-=pad; maxV+=pad;
+
+    gctx.save();
+    gctx.fillStyle='#1c2e66'; gctx.font='12px system-ui,-apple-system,Segoe UI,Roboto';
+    gctx.strokeStyle='#b6c4f0'; gctx.lineWidth=1; gctx.strokeRect(margin,margin,W-2*margin,H-2*margin);
+    gctx.fillText(axis==='x'?'x (m) 軸上の電位 V':'y (m) 軸上の電位 V', margin+6, margin-10);
+
+    for(let k=0;k<=5;k++){
+      const tt=k/5, xx=margin+tt*(W-2*margin);
+      gctx.beginPath(); gctx.moveTo(xx,H-margin); gctx.lineTo(xx,H-margin+4); gctx.stroke();
+      const coord = axis==='x'?(-xRange+2*xRange*tt):(-yRange+2*yRange*tt);
+      gctx.fillText(coord.toFixed(1), xx-10, H-margin+16);
+    }
+    for(let k=0;k<=5;k++){
+      const tt=k/5, yy=H-margin-tt*(H-2*margin);
+      gctx.beginPath(); gctx.moveTo(margin-4,yy); gctx.lineTo(margin,yy); gctx.stroke();
+      const vval=minV+tt*(maxV-minV); gctx.fillText(vval.toExponential(1), 4, yy+4);
+    }
+    if(minV<0&&maxV>0){
+      const y0=H-margin-(0-minV)/(maxV-minV)*(H-2*margin);
+      gctx.strokeStyle='rgba(64,80,160,.25)'; gctx.setLineDash([6,6]);
+      gctx.beginPath(); gctx.moveTo(margin,y0); gctx.lineTo(W-margin,y0); gctx.stroke(); gctx.setLineDash([]);
+    }
+    if(state.fieldMode==='points'){
+      gctx.setLineDash([4,4]);
+      for(const c of state.points.list){
+        let tproj = axis==='x' ? (c.xQ + xRange)/(2*xRange) : (c.yQ + yRange)/(2*yRange);
+        if(tproj>=0&&tproj<=1){
+          const xx = margin + tproj*(W-2*margin);
+          gctx.strokeStyle = c.Q>=0 ? '#ff8aa6' : '#7fe8ff';
+          gctx.beginPath(); gctx.moveTo(xx,margin); gctx.lineTo(xx,H-margin); gctx.stroke();
+        }
+      }
+      gctx.setLineDash([]);
+    }
+    gctx.strokeStyle='#3355aa'; gctx.lineWidth=1.8; gctx.beginPath();
+    for(let i=0;i<N;i++){
+      const xx=margin+xs[i]*(W-2*margin);
+      const yy=H-margin-(Vs[i]-minV)/(maxV-minV)*(H-2*margin);
+      if(i===0) gctx.moveTo(xx,yy); else gctx.lineTo(xx,yy);
+    }
+    gctx.stroke(); gctx.restore();
+
+    const rangeText = axis==='x'
+      ? `x∈[${(-xRange).toFixed(1)}, ${(xRange).toFixed(1)}] m, y=0`
+      : `y∈[${(-yRange).toFixed(1)}, ${(yRange).toFixed(1)}] m, x=0`;
+    graphInfo.textContent = `Vの範囲: [${minV.toExponential(2)}, ${maxV.toExponential(2)}] ／ ${rangeText}`;
+  }
+
+  // ==== Animation loop ====
+  let lastRAF=0, simAcc=0;
+  function loop(tnow){
+    if(!lastRAF) lastRAF=tnow;
+    const elapsed=(tnow-lastRAF)/1000; lastRAF=tnow;
+
+    if(state.running){
+      simAcc += elapsed*state.speedMul;
+      const dtTarget=state.dt, maxSteps=1000; let steps=0;
+      while(simAcc>=dtTarget && steps<maxSteps){ stepPhysics(dtTarget); simAcc-=dtTarget; steps++; }
+      if(steps===maxSteps) simAcc=0;
+      statusEl.textContent='実行中';
+    } else {
+      statusEl.textContent='停止中';
+    }
+    tDisp.textContent = state.t.toFixed(2);
+    render();
+    requestAnimationFrame(loop);
+  }
+
+  // ==== UI wiring ====
+  function readControlsToStateForReset(){
+    state.pxPerM=+pxPerMIn.value; state.dt=+dtIn.value; state.speedMul=+speedMulIn.value; state.arrowScale=+arrowScaleIn.value;
+    state.showGrid=showGridIn.checked; state.showTrail=showTrailIn.checked; state.showE=showEIn.checked; state.showF=showFIn.checked;
+    state.showV=showVIn.checked; state.showFieldMap=showFieldMapIn.checked; state.showB=showBIn.checked; state.showFB=showFBIn.checked;
+    state.p={ m:+mIn.value, q:+qIn.value, x:+x0In.value, y:+y0In.value, vx:+vx0In.value, vy:+vy0In.value };
+    state.fieldMode=fieldModeSel.value; state.uniform={ Ex:+ExIn.value, Ey:+EyIn.value };
+    state.Bz=+BzIn.value; syncChargesFromUI();
+    state.trail=[]; state.t=0;
+  }
+  function resetFromInputs(){ state.running=false; readControlsToStateForReset(); startBtn.textContent='▶ スタート'; }
+  function toggleFieldPanels(){
+    const mode=fieldModeSel.value;
+    if(mode==='uniform'){ uniformWrap.style.display=''; pointsWrap.style.display='none'; }
+    else{ uniformWrap.style.display='none'; pointsWrap.style.display=''; }
+  }
+
+  cvs.addEventListener('click',(e)=>{
+    if(state.running) return;
+    const rect=cvs.getBoundingClientRect();
+    const [xm,ym] = canvasToWorld(e.clientX-rect.left, e.clientY-rect.top);
+    x0In.value=xm.toFixed(3); y0In.value=ym.toFixed(3); resetFromInputs();
+  });
+
+  startBtn.addEventListener('click', ()=>{
+    if(state.running) return;
+    readControlsToStateForReset(); state.running=true; startBtn.textContent='▶ 再スタート';
+  });
+  pauseBtn.addEventListener('click', ()=>{ state.running=false; });
+  resetBtn.addEventListener('click', ()=>{ resetFromInputs(); if(state.graphMode) plotPotential(state.graphMode); });
+  clearTrailBtn.addEventListener('click', ()=>{ state.trail=[]; });
+  plotVxBtn.addEventListener('click', ()=>{ plotPotential('x'); });
+  plotVyBtn.addEventListener('click', ()=>{ plotPotential('y'); });
+  hideGraphBtn.addEventListener('click', hideGraph);
+  document.addEventListener('keydown',(e)=>{
+    if(e.code==='Space'){ e.preventDefault(); state.running=!state.running; if(state.running) startBtn.textContent='▶ 再スタート'; }
+  });
+
+  [pxPerMIn,dtIn,speedMulIn,arrowScaleIn,showGridIn,showTrailIn,showEIn,showFIn,showFBIn,showVIn,showFieldMapIn,showBIn].forEach(inp=>{
+    inp.addEventListener('input', ()=>{ readControlsToStateForReset(); if(state.graphMode) plotPotential(state.graphMode); });
+  });
+  [mIn,qIn,x0In,y0In,vx0In,vy0In,ExIn,EyIn,rminIn,BzIn].forEach(inp=>{
+    inp.addEventListener('change', ()=>{ if(!state.running){ resetFromInputs(); if(state.graphMode) plotPotential(state.graphMode); } });
+  });
+  fieldModeSel.addEventListener('change', ()=>{ toggleFieldPanels(); if(!state.running){ resetFromInputs(); if(state.graphMode) plotPotential(state.graphMode); } });
+
+  function applyCanvasSize(){ setCanvasSize(); render(); if(state.graphMode) plotPotential(state.graphMode); }
+  wIn.addEventListener('change', applyCanvasSize);
+  hIn.addEventListener('change', applyCanvasSize);
+
+  // init
+  setCanvasSize();
+  renderChargesUI();
+  toggleFieldPanels();
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
