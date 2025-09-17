@@ -38,7 +38,11 @@
   .legend{ display:flex; gap:8px; align-items:center; flex-wrap:wrap }
   .chip{ font-size:11px; padding:2px 8px; border-radius:999px; background:#f3f6ff; border:1px solid #dce6ff; color:#31406f }
   .chip .dot{ display:inline-block; width:10px; height:10px; border-radius:999px; margin-right:6px; vertical-align:-1px }
-  .dot-E{ background:var(--accent) } .dot-F{ background:var(--good) } .dot-vel{ background:var(--warn) } .dot-FB{ background:#9b59ff }
+  .dot-E{ background:var(--accent) }
+  .dot-F{ background:#1a9b4a }
+  .dot-vel{ background:var(--warn) }
+  .dot-FB{ background:#9b59ff }
+  .dot-FE{ background:#18b26a }
   .note{ padding:8px 12px; border-radius:8px; background:#f6f9ff; border:1px solid #dfe7ff; margin:12px 0 0; color:#31406f }
   table.charges{ width:100%; border-collapse:collapse }
   table.charges th,table.charges td{ border-bottom:1px solid #e6edff; padding:6px; font-size:12px; text-align:center }
@@ -50,9 +54,10 @@
 <header>
   <h1>電場中の荷電粒子シミュレーション</h1>
   <div class="legend small">
-    <span class="chip"><span class="dot dot-E"></span>電場</span>
-    <span class="chip"><span class="dot dot-F"></span>力</span>
-    <span class="chip"><span class="dot dot-FB"></span>磁力</span>
+    <span class="chip"><span class="dot dot-E"></span>電場 E</span>
+    <span class="chip"><span class="dot dot-FE"></span>電気力 Fe</span>
+    <span class="chip"><span class="dot dot-FB"></span>磁力 Fb</span>
+    <span class="chip"><span class="dot dot-F"></span>合力 F</span>
     <span class="chip"><span class="dot dot-vel"></span>速度</span>
   </div>
 </header>
@@ -69,9 +74,14 @@
         <label>スケール(px/ m)<input type="number" id="pxPerM" value="60" min="5" max="400" step="1"></label>
         <label>時間刻み dt(s)<input type="number" id="dt" value="0.01" min="0.0005" step="0.001"></label>
       </div>
+      <div class="row3">
+        <label>電場スケール(px/(N/C))<input type="number" id="arrowScaleE" value="0.06" step="0.01"></label>
+        <label>電気力スケール(px/N)<input type="number" id="arrowScaleFE" value="2e5" step="1e5"></label>
+        <label>磁力スケール(px/N)<input type="number" id="arrowScaleFB" value="5e7" step="1e7"></label>
+      </div>
       <div class="row">
-        <label>速度倍率×<input type="number" id="speedMul" value="1" min="0.1" step="0.1"></label>
-        <label><input type="checkbox" id="showFieldMap"> 電場ベクトル場(粗)</label>
+        <label>合力スケール(px/N)<input type="number" id="arrowScaleF" value="2e5" step="1e5"></label>
+        <label>矢印最大長(px)<input type="number" id="arrowMax" value="180" min="40" step="10"></label>
       </div>
       <div class="row">
         <label><input type="checkbox" id="showGrid" checked> ガイド格子</label>
@@ -79,20 +89,16 @@
       </div>
       <div class="row">
         <label><input type="checkbox" id="showE" checked> 電場矢印</label>
-        <label><input type="checkbox" id="showF" checked> 力矢印（合力）</label>
+        <label><input type="checkbox" id="showFE" checked> 電気力矢印</label>
       </div>
       <div class="row">
         <label><input type="checkbox" id="showFB" checked> 磁力矢印</label>
+        <label><input type="checkbox" id="showF" checked> 合力矢印</label>
+      </div>
+      <div class="row">
         <label><input type="checkbox" id="showV" checked> 速度矢印</label>
+        <label><input type="checkbox" id="showFieldMap"> 電場ベクトル場(粗)</label>
       </div>
-
-      <!-- ★ 矢印スケール（単位ごと） -->
-      <div class="row3">
-        <label>電場スケール(px/(N/C))<input type="number" id="arrowScaleE" value="0.06" step="0.01"></label>
-        <label>力スケール(px/N)<input type="number" id="arrowScaleF" value="2e5" step="1e5"></label>
-        <label>磁力スケール(px/N)<input type="number" id="arrowScaleFB" value="5e7" step="1e7"></label>
-      </div>
-
       <p class="help">座標系: 画面中心が原点(0,0)。右が +x、上が +y。単位は m, s, C, kg, N/C, N。</p>
     </div>
 
@@ -114,7 +120,7 @@
     </div>
 
     <div class="panel">
-      <h2>③ 電場</h2>
+      <h2>③ 電場・磁場</h2>
       <div class="row">
         <label>
           モード
@@ -137,23 +143,20 @@
           <label>最小距離 r<sub>min</sub> (m)<input type="number" id="rmin" value="0.05" step="0.01"></label>
           <span></span>
         </div>
-        <div class="help small">点電荷を複数配置できます。Q の符号で色が変わります（+: ピンク、−: シアン）。</div>
+        <div class="help small">点電荷を複数配置できます。Q の符号で色が変わります。</div>
         <div style="display:flex; justify-content:space-between; align-items:center; margin:6px 0 4px;">
           <strong class="small" style="opacity:.9">点電荷リスト</strong>
           <button class="btn" id="addChargeBtn">＋ 追加</button>
         </div>
         <div id="chargesHost"></div>
       </div>
-
-      <div class="note small">ベクトル場の描画密度は軽量化のため粗めです。解析を重視する場合は <em>電場矢印</em>と<em>力矢印</em>のみの表示が快適です。</div>
-
       <div class="row">
         <label>磁場 Bz (T)<input type="number" id="Bz" value="0" step="0.01"></label>
-        <span class="small">z軸方向。正は画面の手前向き、負は画面の奥向き。</span>
+        <span class="small">z軸方向。正は手前、負は奥。</span>
       </div>
       <div class="row">
         <label><input type="checkbox" id="showB" checked> 磁場の可視化（× / ・）</label>
-        <span class="small">Bz&gt;0: ドット（・）／Bz&lt;0: バツ（×）</span>
+        <span class="small">Bz&gt;0: ・／Bz&lt;0: ×</span>
       </div>
     </div>
 
@@ -199,13 +202,21 @@
   const statusEl = el('status'); const tDisp = el('tDisp');
   const graphWrap = el('graphWrap'); const graph = el('graph'); const gctx = graph.getContext('2d'); const graphInfo = el('graphInfo');
 
-  const wIn = el('w'), hIn = el('h'), pxPerMIn = el('pxPerM'), dtIn = el('dt'), speedMulIn = el('speedMul');
-  const showGridIn = el('showGrid'), showTrailIn = el('showTrail'), showEIn = el('showE'), showFIn = el('showF'), showFBIn = el('showFB'), showVIn = el('showV'), showFieldMapIn = el('showFieldMap');
-  const arrowScaleEIn = el('arrowScaleE'), arrowScaleFIn = el('arrowScaleF'), arrowScaleFBIn = el('arrowScaleFB');
+  const wIn = el('w'), hIn = el('h'), pxPerMIn = el('pxPerM'), dtIn = el('dt');
+  const arrowScaleEIn  = el('arrowScaleE');
+  const arrowScaleFEIn = el('arrowScaleFE');
+  const arrowScaleFBIn = el('arrowScaleFB');
+  const arrowScaleFIn  = el('arrowScaleF');
+  const arrowMaxIn     = el('arrowMax');
+
+  const showGridIn = el('showGrid'), showTrailIn = el('showTrail');
+  const showEIn = el('showE'), showFEIn = el('showFE'), showFBIn = el('showFB'), showFIn = el('showF'), showVIn = el('showV'), showFieldMapIn = el('showFieldMap');
+
   const mIn = el('m'), qIn = el('q'), x0In = el('x0'), y0In = el('y0'), vx0In = el('vx0'), vy0In = el('vy0');
   const fieldModeSel = el('fieldMode'); const uniformWrap = el('uniformWrap'); const pointsWrap = el('pointsWrap');
   const ExIn = el('Ex'), EyIn = el('Ey'), BzIn = el('Bz'), showBIn = el('showB');
   const rminIn = el('rmin'); const chargesHost = el('chargesHost'); const addChargeBtn = el('addChargeBtn');
+
   const startBtn = el('startBtn'), resetBtn = el('resetBtn'), pauseBtn = el('pauseBtn'), clearTrailBtn = el('clearTrailBtn');
   const plotVxBtn = el('plotVxBtn'), plotVyBtn = el('plotVyBtn'), hideGraphBtn = el('hideGraphBtn');
 
@@ -215,13 +226,13 @@
   // ==== State ====
   const state = {
     running:false, t:0,
-    pxPerM:+pxPerMIn.value, dt:+dtIn.value, speedMul:+speedMulIn.value,
+    pxPerM:+pxPerMIn.value, dt:+dtIn.value, speedMul:1,
     fieldMode:fieldModeSel.value,
-    showGrid:showGridIn.checked, showTrail:showTrailIn.checked, showE:showEIn.checked, showF:showFIn.checked, showV:showVIn.checked,
-    showFieldMap:showFieldMapIn.checked, showB:showBIn.checked, showFB:showFBIn.checked,
-    arrowScaleE:+arrowScaleEIn.value, // px per (N/C)
-    arrowScaleF:+arrowScaleFIn.value, // px per N  (合力)
-    arrowScaleFB:+arrowScaleFBIn.value, // px per N (磁力)
+    showGrid:showGridIn.checked, showTrail:showTrailIn.checked,
+    showE:showEIn.checked, showFE:showFEIn.checked, showFB:showFBIn.checked, showF:showFIn.checked, showV:showVIn.checked,
+    showFieldMap:showFieldMapIn.checked, showB:showBIn.checked,
+    arrowScaleE:+arrowScaleEIn.value, arrowScaleFE:+arrowScaleFEIn.value, arrowScaleFB:+arrowScaleFBIn.value, arrowScaleF:+arrowScaleFIn.value,
+    arrowMax:+arrowMaxIn.value,
     p:{ m:+mIn.value, q:+qIn.value, x:+x0In.value, y:+y0In.value, vx:+vx0In.value, vy:+vy0In.value },
     uniform:{ Ex:+ExIn.value, Ey:+EyIn.value },
     points:{ rmin:+rminIn.value, list:[{ Q:1e-6, xQ:0, yQ:0 }] },
@@ -230,8 +241,8 @@
   };
 
   // ==== Helpers ====
-  function worldToCanvas(xm,ym){ const pxpm=state.pxPerM; return [cvs.width/2+xm*pxpm, cvs.height/2-ym*pxpm]; }
-  function canvasToWorld(cx,cy){ const pxpm=state.pxPerM; return [(cx-cvs.width/2)/pxpm, (cvs.height/2-cy)/pxpm]; }
+  function worldToCanvas(xm,ym){ const s=state.pxPerM; return [cvs.width/2 + xm*s, cvs.height/2 - ym*s]; }
+  function canvasToWorld(cx,cy){ const s=state.pxPerM; return [(cx - cvs.width/2)/s, (cvs.height/2 - cy)/s]; }
   function setCanvasSize(){ const W=Math.max(300,+wIn.value|0), H=Math.max(300,+hIn.value|0); cvs.width=W; cvs.height=H; graph.width=W; }
 
   // ==== Charges UI ====
@@ -255,9 +266,9 @@
     rows.forEach(row=>{ const ins=row.querySelectorAll('input'); arr.push({ Q:+ins[0].value, xQ:+ins[1].value, yQ:+ins[2].value }); });
     state.points.list=arr; state.points.rmin=+rminIn.value;
   }
-  chargesHost.addEventListener('input',(e)=>{ if(e.target.tagName==='INPUT'){ syncChargesFromUI(); if(!state.running) state.trail=[]; }});
-  chargesHost.addEventListener('click',(e)=>{ const btn=e.target.closest('button[data-act="remove"]'); if(btn){ state.points.list.splice(+btn.dataset.idx,1); renderChargesUI(); syncChargesFromUI(); }});
-  addChargeBtn.addEventListener('click',()=>{ state.points.list.push({ Q:1e-6, xQ:(Math.random()*2-1)*2, yQ:(Math.random()*2-1)*2 }); renderChargesUI(); syncChargesFromUI(); });
+  chargesHost?.addEventListener('input',(e)=>{ if(e.target.tagName==='INPUT'){ syncChargesFromUI(); if(!state.running) state.trail=[]; }});
+  chargesHost?.addEventListener('click',(e)=>{ const btn=e.target.closest('button[data-act="remove"]'); if(btn){ state.points.list.splice(+btn.dataset.idx,1); renderChargesUI(); syncChargesFromUI(); }});
+  addChargeBtn?.addEventListener('click',()=>{ state.points.list.push({ Q:1e-6, xQ:(Math.random()*2-1)*2, yQ:(Math.random()*2-1)*2 }); renderChargesUI(); syncChargesFromUI(); });
 
   // ==== Field / Potential ====
   function fieldAt(x,y){
@@ -283,6 +294,7 @@
     if(Bz!==0){ const t=half*Bz, s=2*t/(1+t*t); const vpx=vxm+vym*t, vpy=vym-vxm*t; vxm=vxm+vpy*s; vym=vym-vpx*s; }
     p.vx=vxm+half*Ex; p.vy=vym+half*Ey;
     p.x+=p.vx*dt; p.y+=p.vy*dt;
+
     if(state.showTrail){ state.trail.push([p.x,p.y]); if(state.trail.length>2000) state.trail.shift(); }
     state.t+=dt;
 
@@ -292,7 +304,20 @@
   }
 
   // ==== Drawing ====
-  function clear(){ ctx.clearRect(0,0,cvs.width,cvs.height); }
+  function drawArrow(cx,cy,vx,vy,{color='#fff',headSize=10,lineWidth=2,maxLen=140}={}){
+    let len=Math.hypot(vx,vy); if(len<1e-12) return;
+    const s=Math.min(1, maxLen/len); vx*=s; vy*=s;
+    ctx.save(); ctx.translate(cx,cy);
+    ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(vx,vy); ctx.strokeStyle=color; ctx.lineWidth=lineWidth; ctx.stroke();
+    const a=Math.atan2(vy,vx);
+    ctx.beginPath();
+    ctx.moveTo(vx,vy);
+    ctx.lineTo(vx - headSize*Math.cos(a-Math.PI/6), vy - headSize*Math.sin(a-Math.PI/6));
+    ctx.lineTo(vx - headSize*Math.cos(a+Math.PI/6), vy - headSize*Math.sin(a+Math.PI/6));
+    ctx.closePath(); ctx.fillStyle=color; ctx.fill();
+    ctx.restore();
+  }
+
   function drawGrid(){
     if(!state.showGrid) return;
     const gapPx=Math.max(30,Math.min(100,state.pxPerM));
@@ -304,19 +329,7 @@
     ctx.beginPath(); ctx.moveTo(cvs.width/2,0); ctx.lineTo(cvs.width/2,cvs.height); ctx.stroke();
     ctx.restore();
   }
-  function drawArrow(cx,cy,vx,vy,{color='#fff',headSize=10,lineWidth=2,maxLen=140}={}){
-    let len=Math.hypot(vx,vy); if(len<1e-12) return;
-    const s=Math.min(1,maxLen/len); vx*=s; vy*=s;
-    ctx.save(); ctx.translate(cx,cy);
-    ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(vx,vy); ctx.strokeStyle=color; ctx.lineWidth=lineWidth; ctx.stroke();
-    const a=Math.atan2(vy,vx);
-    ctx.beginPath();
-    ctx.moveTo(vx,vy);
-    ctx.lineTo(vx - headSize*Math.cos(a-Math.PI/6), vy - headSize*Math.sin(a-Math.PI/6));
-    ctx.lineTo(vx - headSize*Math.cos(a+Math.PI/6), vy - headSize*Math.sin(a+Math.PI/6));
-    ctx.closePath(); ctx.fillStyle=color; ctx.fill();
-    ctx.restore();
-  }
+
   function drawBField(){
     if(!state.showB || !state.Bz) return;
     const Bz=state.Bz, gap=70, size=Math.max(2,Math.min(10,3+6*Math.tanh(Math.abs(Bz))));
@@ -328,99 +341,168 @@
             ctx.moveTo(x-size/2,y+size/2); ctx.lineTo(x+size/2,y-size/2); ctx.stroke(); }
     }} ctx.restore();
   }
+
   function drawFieldMap(){
     if(!state.showFieldMap) return;
     const gap=80, s=state.arrowScaleE;
     for(let y=gap/2; y<cvs.height; y+=gap){
       for(let x=gap/2; x<cvs.width; x+=gap){
         const [xm,ym]=canvasToWorld(x,y); const {Ex,Ey}=fieldAt(xm,ym);
-        if(isFinite(Ex)&&isFinite(Ey)) drawArrow(x,y, Ex*s, -Ey*s, { color:'#7fb6ff', lineWidth:1.2, headSize:8, maxLen:60 });
+        if(isFinite(Ex)&&isFinite(Ey))
+          drawArrow(x,y, Ex*s, -Ey*s, { color:'#7fb6ff', lineWidth:1.2, headSize:8, maxLen:Math.max(40, state.arrowMax*0.4) });
       }
     }
   }
+
   function drawParticle(){
     const { p }=state; const [cx,cy]=worldToCanvas(p.x,p.y);
-    // body
+    // 粒子本体
     ctx.save(); ctx.beginPath(); ctx.arc(cx,cy,6,0,Math.PI*2);
     ctx.fillStyle='#ffd166'; ctx.strokeStyle='#f0a500'; ctx.lineWidth=2; ctx.fill(); ctx.stroke(); ctx.restore();
 
     const { Ex,Ey }=fieldAt(p.x,p.y); const Bz=state.Bz||0;
-    const Fex=p.q*Ex, Fey=p.q*Ey;
-    const Fbx=p.q*(p.vy*Bz), Fby=p.q*(-p.vx*Bz);
-    const Fx=Fex+Fbx, Fy=Fey+Fby;
 
-    const sE=state.arrowScaleE, sF=state.arrowScaleF, sFB=state.arrowScaleFB;
-    if(state.showE)  drawArrow(cx,cy,  Ex*sE,   -Ey*sE,   { color:'#2b6bff', lineWidth:2, headSize:12, maxLen:150 });
-    if(state.showF)  drawArrow(cx,cy,  Fx*sF,   -Fy*sF,   { color:'#1a9b4a', lineWidth:2, headSize:12, maxLen:150 });
-    if(state.showFB) drawArrow(cx,cy, Fbx*sFB, -Fby*sFB,  { color:'#9b59ff', lineWidth:2, headSize:12, maxLen:150 });
+    // 力
+    const Fex = p.q*Ex, Fey = p.q*Ey;                // 電気力
+    const Fbx = p.q*(p.vy*Bz), Fby = p.q*(-p.vx*Bz);  // 磁力
+    const Fx  = Fex + Fbx,  Fy  = Fey + Fby;         // 合力
+
+    const maxLen = +state.arrowMax;
+
+    // 電場ベクトル
+    if(state.showE)  drawArrow(cx,cy,  Ex*state.arrowScaleE,   -Ey*state.arrowScaleE,   { color:'#2b6bff', lineWidth:2, headSize:12, maxLen });
+
+    // 電気力
+    if(state.showFE) drawArrow(cx,cy,  Fex*state.arrowScaleFE, -Fey*state.arrowScaleFE, { color:'#18b26a', lineWidth:2, headSize:12, maxLen });
+
+    // 磁力
+    if(state.showFB) drawArrow(cx,cy,  Fbx*state.arrowScaleFB, -Fby*state.arrowScaleFB, { color:'#9b59ff', lineWidth:2, headSize:12, maxLen });
+
+    // 合力
+    if(state.showF)  drawArrow(cx,cy,  Fx*state.arrowScaleF,   -Fy*state.arrowScaleF,   { color:'#1a9b4a', lineWidth:2, headSize:12, maxLen });
+
+    // 速度
     if(state.showV){
       const vpx=p.vx*0.5*state.pxPerM, vpy=p.vy*0.5*state.pxPerM;
-      drawArrow(cx,cy, vpx, -vpy, { color:'#d9822b', lineWidth:2, headSize:12, maxLen:150 });
+      drawArrow(cx,cy, vpx, -vpy, { color:'#d9822b', lineWidth:2, headSize:12, maxLen });
     }
   }
+
   function drawPointCharges(){
     if(state.fieldMode!=='points') return;
     for(const c of state.points.list){
       const [cx,cy]=worldToCanvas(c.xQ,c.yQ);
-      ctx.save(); ctx.beginPath(); ctx.arc(cx,cy,7,0,Math.PI*2);
-      ctx.fillStyle=(c.Q>=0)?'#ff6b8a':'#6bf7ff'; ctx.strokeStyle='#fff'; ctx.lineWidth=1.5; ctx.fill(); ctx.stroke();
+      ctx.save();
+      ctx.beginPath(); ctx.arc(cx,cy,7,0,Math.PI*2);
+      ctx.fillStyle=(c.Q>=0)?'#ff6b8a':'#6bf7ff';
+      ctx.strokeStyle='#fff'; ctx.lineWidth=1.5; ctx.fill(); ctx.stroke();
       ctx.font='12px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillStyle='#102040'; ctx.textAlign='center'; ctx.textBaseline='top';
-      ctx.fillText(c.Q>=0?'+Q':'−Q', cx, cy+8); ctx.restore();
+      ctx.fillText(c.Q>=0?'+Q':'−Q', cx, cy+8);
+      ctx.restore();
     }
   }
+
   function drawTrail(){
     if(!state.showTrail || state.trail.length<2) return;
     ctx.save(); ctx.beginPath();
-    for(let i=0;i<state.trail.length;i++){ const [x,y]=state.trail[i]; const [cx,cy]=worldToCanvas(x,y); if(i===0) ctx.moveTo(cx,cy); else ctx.lineTo(cx,cy); }
+    for(let i=0;i<state.trail.length;i++){
+      const [x,y]=state.trail[i]; const [cx,cy]=worldToCanvas(x,y);
+      if(i===0) ctx.moveTo(cx,cy); else ctx.lineTo(cx,cy);
+    }
     ctx.strokeStyle='rgba(80,100,180,.55)'; ctx.lineWidth=1.6; ctx.stroke(); ctx.restore();
   }
-  function render(){ ctx.clearRect(0,0,cvs.width,cvs.height); drawGrid(); drawBField(); drawFieldMap(); drawTrail(); drawPointCharges(); drawParticle(); }
 
-  // ==== Graphing (unchanged) ====
+  function render(){
+    ctx.clearRect(0,0,cvs.width,cvs.height);
+    drawGrid(); drawBField(); drawFieldMap(); drawTrail(); drawPointCharges(); drawParticle();
+  }
+
+  // ==== Graphing（既存のまま） ====
   function ensureGraphShown(){ graphWrap.style.display='block'; graph.height=220; }
   function hideGraph(){ graphWrap.style.display='none'; gctx.clearRect(0,0,graph.width,graph.height); graphInfo.textContent=''; state.graphMode=null; }
-  function plotPotential(axis){ /* 既存の関数そのまま（長文なので省略なしで元のコードを使用） */ 
-    const W=graph.width,H=graph.height; ensureGraphShown(); state.graphMode=axis; gctx.clearRect(0,0,W,H);
-    const margin=36,xRange=(cvs.width/2)/state.pxPerM,yRange=(cvs.height/2)/state.pxPerM,N=600,xs=new Array(N),Vs=new Array(N);
-    let minV=Infinity,maxV=-Infinity;
-    for(let i=0;i<N;i++){const t=i/(N-1);let x=0,y=0;if(axis==='x'){x=-xRange+2*xRange*t;y=0;}else{x=0;y=-yRange+2*yRange*t;}
-      const V=potentialAt(x,y); xs[i]=t; Vs[i]=V; if(isFinite(V)){if(V<minV)minV=V;if(V>maxV)maxV=V;}}
-    if(!isFinite(minV)||!isFinite(maxV)||minV===maxV){minV=-1;maxV=1;} const pad=.05*(maxV-minV||1); minV-=pad; maxV+=pad;
+  function plotPotential(axis){
+    ensureGraphShown(); state.graphMode=axis;
+    const W=graph.width, H=graph.height; gctx.clearRect(0,0,W,H);
+    const margin=36, xRange=(cvs.width/2)/state.pxPerM, yRange=(cvs.height/2)/state.pxPerM;
+    const N=600, xs=new Array(N), Vs=new Array(N); let minV=Infinity, maxV=-Infinity;
+    for(let i=0;i<N;i++){ const t=i/(N-1); let x=0,y=0; if(axis==='x'){ x=-xRange+2*xRange*t; y=0; } else { x=0; y=-yRange+2*yRange*t; }
+      const V=potentialAt(x,y); xs[i]=t; Vs[i]=V; if(isFinite(V)){ if(V<minV)minV=V; if(V>maxV)maxV=V; } }
+    if(!isFinite(minV)||!isFinite(maxV)||minV===maxV){ minV=-1; maxV=1; }
+    const pad=0.05*(maxV-minV||1); minV-=pad; maxV+=pad;
+
     gctx.save(); gctx.fillStyle='#1c2e66'; gctx.font='12px system-ui,-apple-system,Segoe UI,Roboto'; gctx.strokeStyle='#b6c4f0'; gctx.lineWidth=1;
-    gctx.strokeRect(margin,margin,W-2*margin,H-2*margin); gctx.fillText(axis==='x'?'x (m) 軸上の電位 V':'y (m) 軸上の電位 V', margin+6, margin-10);
-    for(let k=0;k<=5;k++){const tt=k/5,xx=margin+tt*(W-2*margin); gctx.beginPath(); gctx.moveTo(xx,H-margin); gctx.lineTo(xx,H-margin+4); gctx.stroke();
-      const coord=axis==='x'?(-xRange+2*xRange*tt):(-yRange+2*yRange*tt); gctx.fillText(coord.toFixed(1), xx-10, H-margin+16);}
-    for(let k=0;k<=5;k++){const tt=k/5,yy=H-margin-tt*(H-2*margin); gctx.beginPath(); gctx.moveTo(margin-4,yy); gctx.lineTo(margin,yy); gctx.stroke();
-      const vval=minV+tt*(maxV-minV); gctx.fillText(vval.toExponential(1), 4, yy+4);}
-    if(minV<0&&maxV>0){const y0=H-margin-(0-minV)/(maxV-minV)*(H-2*margin); gctx.strokeStyle='rgba(64,80,160,.25)'; gctx.setLineDash([6,6]);
-      gctx.beginPath(); gctx.moveTo(margin,y0); gctx.lineTo(W-margin,y0); gctx.stroke(); gctx.setLineDash([]);}
-    if(state.fieldMode==='points'){ gctx.setLineDash([4,4]); for(const c of state.points.list){ let tproj=axis==='x'?(c.xQ+xRange)/(2*xRange):(c.yQ+yRange)/(2*yRange);
-        if(tproj>=0&&tproj<=1){const xx=margin+tproj*(W-2*margin); gctx.strokeStyle=c.Q>=0?'#ff8aa6':'#7fe8ff'; gctx.beginPath(); gctx.moveTo(xx,margin); gctx.lineTo(xx,H-margin); gctx.stroke();}}
-      gctx.setLineDash([]); }
+    gctx.strokeRect(margin,margin,W-2*margin,H-2*margin);
+    gctx.fillText(axis==='x'?'x (m) 軸上の電位 V':'y (m) 軸上の電位 V', margin+6, margin-10);
+
+    for(let k=0;k<=5;k++){ const tt=k/5, xx=margin+tt*(W-2*margin);
+      gctx.beginPath(); gctx.moveTo(xx,H-margin); gctx.lineTo(xx,H-margin+4); gctx.stroke();
+      const coord=axis==='x'?(-xRange+2*xRange*tt):(-yRange+2*yRange*tt); gctx.fillText(coord.toFixed(1), xx-10, H-margin+16);
+    }
+    for(let k=0;k<=5;k++){ const tt=k/5, yy=H-margin-tt*(H-2*margin);
+      gctx.beginPath(); gctx.moveTo(margin-4,yy); gctx.lineTo(margin,yy); gctx.stroke();
+      const vval=minV+tt*(maxV-minV); gctx.fillText(vval.toExponential(1), 4, yy+4);
+    }
+    if(minV<0&&maxV>0){
+      const y0=H-margin-(0-minV)/(maxV-minV)*(H-2*margin);
+      gctx.strokeStyle='rgba(64,80,160,.25)'; gctx.setLineDash([6,6]);
+      gctx.beginPath(); gctx.moveTo(margin,y0); gctx.lineTo(W-margin,y0); gctx.stroke(); gctx.setLineDash([]);
+    }
+    if(state.fieldMode==='points'){
+      gctx.setLineDash([4,4]);
+      for(const c of state.points.list){
+        const tproj = axis==='x' ? (c.xQ+xRange)/(2*xRange) : (c.yQ+yRange)/(2*yRange);
+        if(tproj>=0&&tproj<=1){
+          const xx=margin+tproj*(W-2*margin);
+          gctx.strokeStyle=c.Q>=0?'#ff8aa6':'#7fe8ff';
+          gctx.beginPath(); gctx.moveTo(xx,margin); gctx.lineTo(xx,H-margin); gctx.stroke();
+        }
+      }
+      gctx.setLineDash([]);
+    }
     gctx.strokeStyle='#3355aa'; gctx.lineWidth=1.8; gctx.beginPath();
-    for(let i=0;i<N;i++){const xx=margin+xs[i]*(W-2*margin); const yy=H-margin-(Vs[i]-minV)/(maxV-minV)*(H-2*margin); if(i===0) gctx.moveTo(xx,yy); else gctx.lineTo(xx,yy); }
+    for(let i=0;i<N;i++){
+      const xx=margin+xs[i]*(W-2*margin);
+      const yy=H-margin-(Vs[i]-minV)/(maxV-minV)*(H-2*margin);
+      if(i===0) gctx.moveTo(xx,yy); else gctx.lineTo(xx,yy);
+    }
     gctx.stroke(); gctx.restore();
-    const rangeText=axis==='x'?`x∈[${(-xRange).toFixed(1)}, ${(xRange).toFixed(1)}] m, y=0`:`y∈[${(-yRange).toFixed(1)}, ${(yRange).toFixed(1)}] m, x=0`;
-    graphInfo.textContent=`Vの範囲: [${minV.toExponential(2)}, ${maxV.toExponential(2)}] ／ ${rangeText}`;
+
+    const rangeText = axis==='x'
+      ? `x∈[${(-xRange).toFixed(1)}, ${(xRange).toFixed(1)}] m, y=0`
+      : `y∈[${(-yRange).toFixed(1)}, ${(yRange).toFixed(1)}] m, x=0`;
+    graphInfo.textContent = `Vの範囲: [${minV.toExponential(2)}, ${maxV.toExponential(2)}] ／ ${rangeText}`;
   }
 
   // ==== Animation loop ====
   let lastRAF=0, simAcc=0;
   function loop(tnow){
-    if(!lastRAF) lastRAF=tnow; const elapsed=(tnow-lastRAF)/1000; lastRAF=tnow;
-    if(state.running){ simAcc+=elapsed*state.speedMul; const dtTarget=state.dt, maxSteps=1000; let steps=0;
+    if(!lastRAF) lastRAF=tnow;
+    const elapsed=(tnow-lastRAF)/1000; lastRAF=tnow;
+
+    if(state.running){
+      simAcc += elapsed;
+      const dtTarget = state.dt, maxSteps=1000; let steps=0;
       while(simAcc>=dtTarget && steps<maxSteps){ stepPhysics(dtTarget); simAcc-=dtTarget; steps++; }
-      if(steps===maxSteps) simAcc=0; statusEl.textContent='実行中';
-    } else { statusEl.textContent='停止中'; }
-    tDisp.textContent=state.t.toFixed(2); render(); requestAnimationFrame(loop);
+      if(steps===maxSteps) simAcc=0;
+      statusEl.textContent='実行中';
+    } else {
+      statusEl.textContent='停止中';
+    }
+
+    tDisp.textContent = state.t.toFixed(2);
+    render();
+    requestAnimationFrame(loop);
   }
 
   // ==== UI wiring ====
   function readControlsToStateForReset(){
-    state.pxPerM=+pxPerMIn.value; state.dt=+dtIn.value; state.speedMul=+speedMulIn.value;
-    state.showGrid=showGridIn.checked; state.showTrail=showTrailIn.checked; state.showE=showEIn.checked; state.showF=showFIn.checked; state.showV=showVIn.checked;
-    state.showFieldMap=showFieldMapIn.checked; state.showB=showBIn.checked; state.showFB=showFBIn.checked;
-    state.arrowScaleE=+arrowScaleEIn.value; state.arrowScaleF=+arrowScaleFIn.value; state.arrowScaleFB=+arrowScaleFBIn.value;
+    state.pxPerM=+pxPerMIn.value; state.dt=+dtIn.value;
+    state.arrowScaleE=+arrowScaleEIn.value; state.arrowScaleFE=+arrowScaleFEIn.value; state.arrowScaleFB=+arrowScaleFBIn.value; state.arrowScaleF=+arrowScaleFIn.value;
+    state.arrowMax=+arrowMaxIn.value;
+    state.showGrid=showGridIn.checked; state.showTrail=showTrailIn.checked;
+    state.showE=showEIn.checked; state.showFE=showFEIn.checked; state.showFB=showFBIn.checked; state.showF=showFIn.checked; state.showV=showVIn.checked;
+    state.showFieldMap=showFieldMapIn.checked; state.showB=showBIn.checked;
+
     state.p={ m:+mIn.value, q:+qIn.value, x:+x0In.value, y:+y0In.value, vx:+vx0In.value, vy:+vy0In.value };
     state.fieldMode=fieldModeSel.value; state.uniform={ Ex:+ExIn.value, Ey:+EyIn.value }; state.Bz=+BzIn.value; syncChargesFromUI();
     state.trail=[]; state.t=0;
@@ -428,8 +510,13 @@
   function resetFromInputs(){ state.running=false; readControlsToStateForReset(); startBtn.textContent='▶ スタート'; }
   function toggleFieldPanels(){ const mode=fieldModeSel.value; if(mode==='uniform'){ uniformWrap.style.display=''; pointsWrap.style.display='none'; } else { uniformWrap.style.display='none'; pointsWrap.style.display=''; } }
 
-  cvs.addEventListener('click',(e)=>{ if(state.running) return; const r=cvs.getBoundingClientRect();
-    const [xm,ym]=canvasToWorld(e.clientX-r.left,e.clientY-r.top); x0In.value=xm.toFixed(3); y0In.value=ym.toFixed(3); resetFromInputs(); });
+  cvs.addEventListener('click',(e)=>{
+    if(state.running) return;
+    const rect=cvs.getBoundingClientRect();
+    const [xm,ym]=canvasToWorld(e.clientX-rect.left,e.clientY-rect.top);
+    x0In.value=xm.toFixed(3); y0In.value=ym.toFixed(3);
+    resetFromInputs();
+  });
 
   startBtn.addEventListener('click',()=>{ if(state.running) return; readControlsToStateForReset(); state.running=true; startBtn.textContent='▶ 再スタート'; });
   pauseBtn.addEventListener('click',()=>{ state.running=false; });
@@ -438,16 +525,14 @@
   plotVxBtn.addEventListener('click',()=>{ plotPotential('x'); });
   plotVyBtn.addEventListener('click',()=>{ plotPotential('y'); });
   hideGraphBtn.addEventListener('click', hideGraph);
-  document.addEventListener('keydown',(e)=>{ if(e.code==='Space'){ e.preventDefault(); state.running=!state.running; if(state.running) startBtn.textContent='▶ 再スタート'; } });
 
-  [pxPerMIn,dtIn,speedMulIn,arrowScaleEIn,arrowScaleFIn,arrowScaleFBIn,showGridIn,showTrailIn,showEIn,showFIn,showFBIn,showVIn,showFieldMapIn,showBIn]
+  // 即時反映（input）に統一
+  [wIn,hIn,pxPerMIn,dtIn,arrowScaleEIn,arrowScaleFEIn,arrowScaleFBIn,arrowScaleFIn,arrowMaxIn,
+   ExIn,EyIn,BzIn,
+   showGridIn,showTrailIn,showEIn,showFEIn,showFBIn,showFIn,showVIn,showFieldMapIn,showBIn]
     .forEach(inp=>inp.addEventListener('input',()=>{ readControlsToStateForReset(); if(state.graphMode) plotPotential(state.graphMode); }));
-  [mIn,qIn,x0In,y0In,vx0In,vy0In,ExIn,EyIn,rminIn,BzIn]
-    .forEach(inp=>inp.addEventListener('change',()=>{ if(!state.running){ resetFromInputs(); if(state.graphMode) plotPotential(state.graphMode); }}));
-  fieldModeSel.addEventListener('change',()=>{ toggleFieldPanels(); if(!state.running){ resetFromInputs(); if(state.graphMode) plotPotential(state.graphMode); }});
 
-  function applyCanvasSize(){ setCanvasSize(); render(); if(state.graphMode) plotPotential(state.graphMode); }
-  wIn.addEventListener('change', applyCanvasSize); hIn.addEventListener('change', applyCanvasSize);
+  fieldModeSel.addEventListener('change',()=>{ toggleFieldPanels(); readControlsToStateForReset(); if(state.graphMode) plotPotential(state.graphMode); });
 
   // init
   setCanvasSize(); renderChargesUI(); toggleFieldPanels(); requestAnimationFrame(loop);
