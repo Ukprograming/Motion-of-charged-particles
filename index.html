@@ -249,6 +249,7 @@
     // field params
     uniform: { Ex: +ExIn.value, Ey: +EyIn.value },
     points: { rmin: +rminIn.value, list: [ { Q: 1e-6, xQ: 0, yQ: 0 } ] },
+    Bz: +BzIn.value, // ← 初期化を追加
     trail: [],
     graphMode: null, // 'x' | 'y' | null
   };
@@ -549,292 +550,23 @@
     const Bz = state.Bz || 0;
 
     // Forces
-    const Fex = p.q * Ex, Fey = p.q * Ey;             // electric
+    const Fex = p.q * Ex, Fey = p.q * Ey;                   // electric
     const Fbx = p.q * (p.vy * Bz), Fby = p.q * (-p.vx * Bz); // magnetic
-    const Fx = Fex + Fbx, Fy = Fey + Fby;              // total
+    const Fx = Fex + Fbx, Fy = Fey + Fby;                    // total
 
     const s = state.arrowScale; // px per unit (E: N/C, F: N)
-    if (state.showE) drawArrow(cx, cy, Ex * s, -Ey * s, { color: '#2b6bff', lineWidth: 2, headSize: 12, maxLen: 150 });
-    if (state.showF) drawArrow(cx, cy, Fx * s * 0.15, -Fy * s * 0.15, { color: '#1a9b4a', lineWidth: 2, headSize: 12, maxLen: 150 });
-    if (state.showFB) drawArrow(cx, cy, Fbx * s * 0.15, -Fby * s * 0.15, { color: '#9b59ff', lineWidth: 2, headSize: 12, maxLen: 150 });
+    if (state.showE)  drawArrow(cx, cy, Ex * s,    -Ey * s,    { color: '#2b6bff', lineWidth: 2, headSize: 12, maxLen: 150 });
+    if (state.showF)  drawArrow(cx, cy, Fx * s*0.15, -Fy * s*0.15, { color: '#1a9b4a', lineWidth: 2, headSize: 12, maxLen: 150 });
+    if (state.showFB) drawArrow(cx, cy, Fbx * s*0.15, -Fby * s*0.15, { color: '#9b59ff', lineWidth: 2, headSize: 12, maxLen: 150 });
     if (state.showV) {
       const vpx = p.vx * 0.5 * state.pxPerM; // 0.5 sec visualized
       const vpy = p.vy * 0.5 * state.pxPerM;
       drawArrow(cx, cy, vpx, -vpy, { color: '#d9822b', lineWidth: 2, headSize: 12, maxLen: 150 });
     }
-  }
-  }
+  } // ← ここで関数は終わり（余分な } は削除）
 
   function drawPointCharges() {
     if (state.fieldMode !== 'points') return;
     for (const c of state.points.list) {
       const [cx, cy] = worldToCanvas(c.xQ, c.yQ);
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(cx, cy, 7, 0, Math.PI*2);
-      ctx.fillStyle = (c.Q >= 0) ? '#ff6b8a' : '#6bf7ff';
-      ctx.strokeStyle = '#fff';
-      ctx.lineWidth = 1.5;
-      ctx.fill(); ctx.stroke();
-      ctx.font = '12px system-ui, -apple-system, Segoe UI, Roboto';
-      ctx.fillStyle = '#102040';
-    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-      ctx.fillText(c.Q >= 0 ? '+Q' : '−Q', cx, cy + 8);
-      ctx.restore();
-    }
-  }
-
-  function drawTrail() {
-    if (!state.showTrail || state.trail.length < 2) return;
-    ctx.save();
-    ctx.beginPath();
-    for (let i = 0; i < state.trail.length; i++) {
-      const [x, y] = state.trail[i];
-      const [cx, cy] = worldToCanvas(x, y);
-      if (i === 0) ctx.moveTo(cx, cy); else ctx.lineTo(cx, cy);
-    }
-    ctx.strokeStyle = 'rgba(80, 100, 180, 0.55)';
-    ctx.lineWidth = 1.6;
-    ctx.stroke();
-    ctx.restore();
-  }
-
-  function render() {
-    clear();
-    drawGrid();
-    drawBField();
-    drawFieldMap();
-    drawTrail();
-    drawPointCharges();
-    drawParticle();
-  }
-
-  // ==== Graphing V(x) or V(y) ====
-  function ensureGraphShown() {
-    graphWrap.style.display = 'block';
-    graph.height = 220; // reset height each time (can be adjusted)
-  }
-  function hideGraph() {
-    graphWrap.style.display = 'none';
-    gctx.clearRect(0,0,graph.width,graph.height);
-    graphInfo.textContent = '';
-    state.graphMode = null;
-  }
-  function plotPotential(axis) { // axis: 'x' or 'y'
-    ensureGraphShown();
-    state.graphMode = axis;
-    const W = graph.width, H = graph.height;
-    gctx.clearRect(0,0,W,H);
-    const margin = 36;
-    // world ranges
-    const xRange = (cvs.width/2)/state.pxPerM;
-    const yRange = (cvs.height/2)/state.pxPerM;
-    const N = 600;
-    const xs = new Array(N);
-    const Vs = new Array(N);
-    let minV = Infinity, maxV = -Infinity;
-    for (let i=0;i<N;i++) {
-      const t = i/(N-1);
-      let x=0,y=0;
-      if (axis==='x') { x = -xRange + 2*xRange*t; y = 0; }
-      else { x = 0; y = -yRange + 2*yRange*t; }
-      const V = potentialAt(x,y);
-      xs[i] = t; Vs[i] = V;
-      if (isFinite(V)) { if (V<minV) minV=V; if (V>maxV) maxV=V; }
-    }
-    if (!isFinite(minV) || !isFinite(maxV) || minV===maxV) { minV=-1; maxV=1; }
-    // pad a bit
-    const pad = 0.05*(maxV-minV || 1);
-    minV -= pad; maxV += pad;
-
-    // axes
-    gctx.save();
-    gctx.fillStyle = '#1c2e66';
-    gctx.font = '12px system-ui, -apple-system, Segoe UI, Roboto';
-    gctx.strokeStyle = '#b6c4f0';
-    gctx.lineWidth = 1;
-    gctx.strokeRect(margin, margin, W-2*margin, H-2*margin);
-
-    // ticks and labels (5 ticks)
-    gctx.fillText(axis==='x' ? 'x (m) 軸上の電位 V' : 'y (m) 軸上の電位 V', margin+6, margin-10);
-    for (let k=0;k<=5;k++){
-      const tt = k/5;
-      const xx = margin + tt*(W-2*margin);
-      gctx.beginPath(); gctx.moveTo(xx, H-margin); gctx.lineTo(xx, H-margin+4); gctx.stroke();
-      const coord = axis==='x' ? (-xRange + 2*xRange*tt) : (-yRange + 2*yRange*tt);
-      gctx.fillText(coord.toFixed(1), xx-10, H-margin+16);
-    }
-    // y ticks
-    for (let k=0;k<=5;k++){
-      const tt = k/5;
-      const yy = H-margin - tt*(H-2*margin);
-      gctx.beginPath(); gctx.moveTo(margin-4, yy); gctx.lineTo(margin, yy); gctx.stroke();
-      const vval = minV + tt*(maxV-minV);
-      gctx.fillText(vval.toExponential(1), 4, yy+4);
-    }
-
-    // zero line if in range
-    if (minV<0 && maxV>0) {
-      const y0 = H-margin - (0-minV)/(maxV-minV)*(H-2*margin);
-      gctx.strokeStyle = 'rgba(64,80,160,0.25)';
-      gctx.setLineDash([6,6]);
-      gctx.beginPath(); gctx.moveTo(margin, y0); gctx.lineTo(W-margin, y0); gctx.stroke();
-      gctx.setLineDash([]);
-    }
-
-    // mark point charges projection
-    if (state.fieldMode==='points') {
-      gctx.setLineDash([4,4]);
-      for (const c of state.points.list) {
-        let tproj;
-        if (axis==='x') {
-          tproj = (c.xQ + xRange)/(2*xRange);
-        } else {
-          tproj = (c.yQ + yRange)/(2*yRange);
-        }
-        if (tproj>=0 && tproj<=1) {
-          const xx = margin + tproj*(W-2*margin);
-          gctx.strokeStyle = c.Q>=0 ? '#ff8aa6' : '#7fe8ff';
-          gctx.beginPath(); gctx.moveTo(xx, margin); gctx.lineTo(xx, H-margin); gctx.stroke();
-        }
-      }
-      gctx.setLineDash([]);
-    }
-
-    // plot line
-    gctx.strokeStyle = '#3355aa';
-    gctx.lineWidth = 1.8;
-    gctx.beginPath();
-    for (let i=0;i<N;i++){
-      const xx = margin + xs[i]*(W-2*margin);
-      const yy = H-margin - (Vs[i]-minV)/(maxV-minV)*(H-2*margin);
-      if (i===0) gctx.moveTo(xx,yy); else gctx.lineTo(xx,yy);
-    }
-    gctx.stroke();
-    gctx.restore();
-
-    const rangeText = axis==='x' ? `x∈[${(-xRange).toFixed(1)}, ${(+xRange).toFixed(1)}] m, y=0` : `y∈[${(-yRange).toFixed(1)}, ${(+yRange).toFixed(1)}] m, x=0`;
-    graphInfo.textContent = `Vの範囲: [${minV.toExponential(2)}, ${maxV.toExponential(2)}] (相対基準) ／ ${rangeText}`;
-  }
-
-  // ==== Animation loop ====
-  let lastRAF = 0;
-  let simAcc = 0; // fixed-step accumulator for stable integration
-  function loop(tnow) {
-    if (!lastRAF) lastRAF = tnow;
-    const elapsed = (tnow - lastRAF) / 1000;
-    lastRAF = tnow;
-
-    if (state.running) {
-      simAcc += elapsed * state.speedMul;
-      const dtTarget = state.dt;
-      const maxSteps = 1000;
-      let steps = 0;
-      while (simAcc >= dtTarget && steps < maxSteps) {
-        stepPhysics(dtTarget);
-        simAcc -= dtTarget; steps++;
-      }
-      if (steps === maxSteps) { simAcc = 0; } // fallback safety
-      statusEl.textContent = '実行中';
-    } else {
-      statusEl.textContent = '停止中';
-    }
-
-    tDisp.textContent = state.t.toFixed(2);
-    render();
-    requestAnimationFrame(loop);
-  }
-
-  // ==== UI wiring ====
-  function readControlsToStateForReset() {
-    state.pxPerM = +pxPerMIn.value;
-    state.dt = +dtIn.value;
-    state.speedMul = +speedMulIn.value;
-    state.arrowScale = +arrowScaleIn.value;
-    state.showGrid = showGridIn.checked;
-    state.showTrail = showTrailIn.checked;
-    state.showE = showEIn.checked;
-    state.showF = showFIn.checked;
-    state.showV = showVIn.checked;
-    state.showFieldMap = showFieldMapIn.checked;
-    state.showB = showBIn.checked;
-    state.showFB = showFBIn.checked;
-
-    state.p = { m: +mIn.value, q: +qIn.value, x: +x0In.value, y: +y0In.value, vx: +vx0In.value, vy: +vy0In.value };
-
-    state.fieldMode = fieldModeSel.value;
-    state.uniform = { Ex: +ExIn.value, Ey: +EyIn.value };
-    state.Bz = +BzIn.value;
-    syncChargesFromUI();
-
-    state.trail = [];
-    state.t = 0;
-  }
-
-  function resetFromInputs() {
-    state.running = false;
-    readControlsToStateForReset();
-    startBtn.textContent = '▶ スタート';
-  }
-
-  function toggleFieldPanels() {
-    const mode = fieldModeSel.value;
-    if (mode === 'uniform') { uniformWrap.style.display = ''; pointsWrap.style.display = 'none'; }
-    else { uniformWrap.style.display = 'none'; pointsWrap.style.display = ''; }
-  }
-
-  // Click on canvas to set initial position when paused
-  cvs.addEventListener('click', (e) => {
-    if (state.running) return;
-    const rect = cvs.getBoundingClientRect();
-    const cx = e.clientX - rect.left;
-    const cy = e.clientY - rect.top;
-    const [xm, ym] = canvasToWorld(cx, cy);
-    x0In.value = xm.toFixed(3);
-    y0In.value = ym.toFixed(3);
-    resetFromInputs();
-  });
-
-  startBtn.addEventListener('click', () => {
-    if (state.running) return;
-    readControlsToStateForReset();
-    state.running = true;
-    startBtn.textContent = '▶ 再スタート';
-  });
-  pauseBtn.addEventListener('click', () => { state.running = false; });
-  resetBtn.addEventListener('click', () => { resetFromInputs(); if (state.graphMode) plotPotential(state.graphMode); });
-  clearTrailBtn.addEventListener('click', () => { state.trail = []; });
-  plotVxBtn.addEventListener('click', () => { plotPotential('x'); });
-  plotVyBtn.addEventListener('click', () => { plotPotential('y'); });
-  hideGraphBtn.addEventListener('click', hideGraph);
-
-  document.addEventListener('keydown', (e) => {
-    if (e.code === 'Space') {
-      e.preventDefault();
-      state.running = !state.running;
-      if (state.running) startBtn.textContent = '▶ 再スタート';
-    }
-  });
-
-  [pxPerMIn, dtIn, speedMulIn, arrowScaleIn, showGridIn, showTrailIn, showEIn, showFIn, showFBIn, showVIn, showFieldMapIn, showBIn].forEach(inp => {
-    inp.addEventListener('input', () => { readControlsToStateForReset(); if (state.graphMode) plotPotential(state.graphMode); });
-  });
-  [mIn, qIn, x0In, y0In, vx0In, vy0In, ExIn, EyIn, rminIn, BzIn].forEach(inp => {
-    inp.addEventListener('change', () => { if (!state.running) { resetFromInputs(); if (state.graphMode) plotPotential(state.graphMode); } });
-  });
-  fieldModeSel.addEventListener('change', () => { toggleFieldPanels(); if (!state.running) { resetFromInputs(); if (state.graphMode) plotPotential(state.graphMode); } });
-
-  // Canvas size controls
-  function applyCanvasSize() { setCanvasSize(); render(); if (state.graphMode) plotPotential(state.graphMode); }
-  wIn.addEventListener('change', applyCanvasSize);
-  hIn.addEventListener('change', applyCanvasSize);
-
-  // init
-  setCanvasSize();
-  renderChargesUI();
-  toggleFieldPanels();
-  requestAnimationFrame(loop);
-})();
-</script>
-</body>
-</html>
+      ctx.save
