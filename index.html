@@ -3,40 +3,25 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>電場中の荷電粒子シミュレーション</title>
+<title>電場・磁場中の荷電粒子シミュレーション</title>
 <link rel="icon" href="data:," />
 <style>
   :root{ --bg:#f4f7ff; --panel:#fff; --ink:#0b1a3a; --muted:#4b5ea7; --accent:#2b6bff; --good:#1a9b4a; --warn:#d9822b; --bad:#e54861; }
   *{ box-sizing:border-box }
   html,body{ height:100% }
   body{ margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif; background:var(--bg); color:var(--ink) }
-  header{ padding:14px 18px; border-bottom:1px solid #d9e3ff; background:#f8faff; display:flex; gap:12px; align-items:center }
-  header h1{ font-size:18px; margin:0; font-weight:700; letter-spacing:.02em }
-  main{ display:grid; grid-template-columns:400px 1fr; gap:0; height:calc(100% - 56px) }
-  aside{ background:var(--panel); border-right:1px solid #d9e3ff; overflow:auto }
-  section.canvas-wrap{ display:grid; grid-template-rows:1fr auto auto }
-  /* CSSサイズはそのまま。内部ピクセルはJSでdpr拡大 */
-  #canvas{ display:block; width:100%; height:100%; background:radial-gradient(1200px 800px at 50% 55%,#f2f7ff 0%,#fff 70%) }
-  #graphWrap{ display:none; border-top:1px solid #d9e3ff; background:#f2f7ff }
-  #graph{ display:block; width:100%; height:200px; cursor:grab }
-  #graph.dragging{ cursor:grabbing }
-  .toolbar{ display:flex; gap:8px; padding:10px; border-top:1px solid #d9e3ff; background:#eef3ff }
-  .btn{ background:#eef3ff; color:var(--ink); border:1px solid #c9d6ff; padding:8px 12px; border-radius:10px; cursor:pointer; font-weight:600 }
-  .btn:hover{ background:#e3ecff }
-  .btn.secondary{ background:#f7f9ff; border-color:#d9e3ff }
-  .btn.danger{ background:#ffe9ee; border-color:#ffc4cf; color:#7b1022 }
-  .btn:disabled{ opacity:.5; cursor:not-allowed }
 
-  .panel{ padding:14px 16px; border-bottom:1px dashed #d9e3ff }
-  .panel h2{ font-size:14px; color:var(--muted); margin:0 0 8px; letter-spacing:.02em }
-  .row{ display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px }
-  .row3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:8px }
-  .row4{ display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:8px; margin-bottom:8px }
-  label{ font-size:12px; opacity:.95; display:flex; align-items:center; justify-content:space-between; gap:8px }
-  input[type="number"],select{ width:100%; padding:8px; border-radius:8px; border:1px solid #c9d6ff; background:#fbfdff; color:var(--ink) }
-  input[type="checkbox"]{ transform:translateY(1px) }
-  .help{ font-size:12px; color:#4a5fb3; opacity:.9; line-height:1.5 }
-  .small{ font-size:11px; opacity:.85 }
+  /* Header */
+  header{
+    padding:12px 14px;
+    border-bottom:1px solid #d9e3ff;
+    background:#f8faff;
+    display:grid;
+    grid-template-columns:auto 1fr auto;
+    gap:12px;
+    align-items:center;
+  }
+  header h1{ font-size:18px; margin:0; font-weight:700; letter-spacing:.02em }
   .legend{ display:flex; gap:8px; align-items:center; flex-wrap:wrap }
   .chip{ font-size:11px; padding:2px 8px; border-radius:999px; background:#f3f6ff; border:1px solid #dce6ff; color:#31406f }
   .chip .dot{ display:inline-block; width:10px; height:10px; border-radius:999px; margin-right:6px; vertical-align:-1px }
@@ -45,6 +30,46 @@
   .dot-vel{ background:var(--warn) }
   .dot-FB{ background:#9b59ff }
   .dot-FE{ background:#18b26a }
+
+  /* Top controls in header */
+  .top-controls{ display:flex; gap:8px; align-items:center; flex-wrap:wrap }
+  .btn{ background:#eef3ff; color:var(--ink); border:1px solid #c9d6ff; padding:8px 12px; border-radius:10px; cursor:pointer; font-weight:600 }
+  .btn:hover{ background:#e3ecff }
+  .btn.secondary{ background:#f7f9ff; border-color:#d9e3ff }
+  .btn.danger{ background:#ffe9ee; border-color:#ffc4cf; color:#7b1022 }
+  .btn.ghost{ background:#fff; border-color:#d9e3ff }
+  .btn:disabled{ opacity:.5; cursor:not-allowed }
+
+  /* Layout: collapsible aside */
+  main{
+    display:grid;
+    grid-template-columns:400px 1fr;
+    gap:0;
+    height:calc(100% - 56px);
+    transition:grid-template-columns .2s ease;
+  }
+  body.hide-aside main{ grid-template-columns:0 1fr; }
+  aside{ background:var(--panel); border-right:1px solid #d9e3ff; overflow:auto; transition:width .2s ease, opacity .2s ease }
+  body.hide-aside aside{ width:0; opacity:0; pointer-events:none }
+
+  section.canvas-wrap{ display:grid; grid-template-rows:1fr auto auto }
+  #canvas{ display:block; width:100%; height:100%; background:radial-gradient(1200px 800px at 50% 55%,#f2f7ff 0%,#fff 70%); cursor:grab }
+  #canvas.dragging{ cursor:grabbing }
+  #graphWrap{ display:none; border-top:1px solid #d9e3ff; background:#f2f7ff }
+  #graph{ display:block; width:100%; height:200px; cursor:grab }
+  #graph.dragging{ cursor:grabbing }
+  .toolbar{ display:flex; gap:8px; padding:10px; border-top:1px solid #d9e3ff; background:#eef3ff }
+
+  .panel{ padding:14px 16px; border-bottom:1px dashed #d9e3ff }
+  .panel h2{ font-size:14px; color:var(--muted); margin:0 0 8px; letter-spacing:.02em }
+  .row{ display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px }
+  .row3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:8px }
+  .row4{ display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:8px; margin-bottom:8px }
+  label{ font-size:12px; opacity:.95; display:flex; align-items:center; justify-content:space-between; gap:8px }
+  input[type="number"],select{ width:100%; padding:8px; border-radius:8px; border:1px solid #c9d6ff; background:#fbfdff; color:#000 }
+  input[type="checkbox"]{ transform:translateY(1px) }
+  .help{ font-size:12px; color:#4a5fb3; opacity:.9; line-height:1.5 }
+  .small{ font-size:11px; opacity:.85 }
   .note{ padding:8px 12px; border-radius:8px; background:#f6f9ff; border:1px solid #dfe7ff; margin:12px 0 0; color:#31406f }
   table.charges{ width:100%; border-collapse:collapse }
   table.charges th,table.charges td{ border-bottom:1px solid #e6edff; padding:6px; font-size:12px; text-align:center }
@@ -54,13 +79,27 @@
 </head>
 <body>
 <header>
-  <h1>電場中の荷電粒子シミュレーション</h1>
-  <div class="legend small">
-    <span class="chip"><span class="dot dot-E"></span>電場 E</span>
-    <span class="chip"><span class="dot dot-FE"></span>電気力 Fe</span>
-    <span class="chip"><span class="dot dot-FB"></span>磁力 Fb</span>
-    <span class="chip"><span class="dot dot-F"></span>合力 F</span>
-    <span class="chip"><span class="dot dot-vel"></span>速度</span>
+  <!-- 左：メニュー折りたたみトグル -->
+  <button class="btn ghost" id="toggleAsideBtn" title="設定メニューの表示/非表示">☰ メニュー</button>
+
+  <!-- 中央：タイトル＋凡例 -->
+  <div style="display:flex; align-items:center; gap:12px; min-width:0;">
+    <h1 style="white-space:nowrap">電場・磁場中の荷電粒子シミュレーション</h1>
+    <div class="legend small">
+      <span class="chip"><span class="dot dot-E"></span>電場 E</span>
+      <span class="chip"><span class="dot dot-FE"></span>電気力 Fe</span>
+      <span class="chip"><span class="dot dot-FB"></span>磁力 Fb</span>
+      <span class="chip"><span class="dot dot-F"></span>合力 F</span>
+      <span class="chip"><span class="dot dot-vel"></span>速度</span>
+    </div>
+  </div>
+
+  <!-- 右：上部固定の4ボタン -->
+  <div class="top-controls">
+    <button class="btn" id="startBtn">▶ スタート</button>
+    <button class="btn secondary" id="resetBtn">⟲ リセット</button>
+    <button class="btn" id="pauseBtn">⏸ 一時停止</button>
+    <button class="btn danger" id="clearTrailBtn">軌跡クリア</button>
   </div>
 </header>
 
@@ -73,42 +112,32 @@
         <label>高さ(px)<input type="number" id="h" value="620" min="300" step="10"></label>
       </div>
       <div class="row">
-        <label>スケール(px/ m)<input type="number" id="pxPerM" value="60" min="5" max="400" step="1"></label>
+        <label>スケール(px/ m)<input type="number" id="pxPerM" value="60" min="5" max="2000" step="1"></label>
         <label>時間刻み dt(s)<input type="number" id="dt" value="0.01" min="0.0005" step="0.001"></label>
       </div>
+
+      <div class="row">
+        <label><input type="checkbox" id="autoFit" checked> 自動キャンバス幅</label>
+        <button class="btn" id="fitNowBtn">今すぐ合わせる</button>
+      </div>
+
       <div class="row3">
         <label>電場スケール(px/(N/C))<input type="number" id="arrowScaleE" value="0.06" step="0.01"></label>
-        <label>電気力スケール(px/N)<input type="number" id="arrowScaleFE" value="2e5" step="1e5"></label>
-        <label>磁力スケール(px/N)<input type="number" id="arrowScaleFB" value="5e7" step="1e7"></label>
+        <label>電気力スケール(px/N)<input type="number" id="arrowScaleFE" value="200000" step="100000"></label>
+        <label>磁力スケール(px/N)<input type="number" id="arrowScaleFB" value="50000000" step="10000000"></label>
       </div>
       <div class="row">
-        <label>合力スケール(px/N)<input type="number" id="arrowScaleF" value="2e5" step="1e5"></label>
-        <label>矢印最大長(px)<input type="number" id="arrowMax" value="180" min="40" step="10"></label>
+        <label>合力スケール(px/N)<input type="number" id="arrowScaleF" value="200000" step="100000"></label>
+        <label>矢印最大長(px)<input type="number" id="arrowMax" value="0" min="0" step="10"></label>
       </div>
-      <div class="row">
-        <label><input type="checkbox" id="showGrid" checked> ガイド格子</label>
-        <label><input type="checkbox" id="showTrail" checked> 移動の軌跡</label>
-      </div>
-      <div class="row">
-        <label><input type="checkbox" id="showE" checked> 電場矢印</label>
-        <label><input type="checkbox" id="showFE" checked> 電気力矢印</label>
-      </div>
-      <div class="row">
-        <label><input type="checkbox" id="showFB" checked> 磁力矢印</label>
-        <label><input type="checkbox" id="showF" checked> 合力矢印</label>
-      </div>
-      <div class="row">
-        <label><input type="checkbox" id="showV" checked> 速度矢印</label>
-        <label><input type="checkbox" id="showFieldMap"> 電場ベクトル場(粗)</label>
-      </div>
-      <p class="help">座標系: 画面中心が原点(0,0)。右が +x、上が +y。単位は m, s, C, kg, N/C, N。</p>
+      <p class="help">矢印最大長 = 0 で上限なし。</p>
     </div>
 
     <div class="panel">
       <h2>② 粒子 (テスト荷電粒子)</h2>
       <div class="row">
-        <label>質量 m (kg)<input type="number" id="m" value="1e-6" step="1e-7"></label>
-        <label>電気量 q (C)<input type="number" id="q" value="1e-6" step="1e-7"></label>
+        <label>質量 m (kg)<input type="number" id="m" value="0.000001" step="0.0000001"></label>
+        <label>電気量 q (C)<input type="number" id="q" value="0.000001" step="0.0000001"></label>
       </div>
       <div class="row">
         <label>初期位置 x₀ (m)<input type="number" id="x0" value="-3" step="0.1"></label>
@@ -118,7 +147,7 @@
         <label>初速度 vₓ₀ (m/s)<input type="number" id="vx0" value="4" step="0.1"></label>
         <label>初速度 v_y₀ (m/s)<input type="number" id="vy0" value="0" step="0.1"></label>
       </div>
-      <p class="small">※ 停止中にキャンバスをクリックすると「初期位置」をその場所に設定できます。</p>
+      <p class="small">※ 停止中にキャンバスを<strong>クリック</strong>すると「初期位置」をその場所に設定できます（ドラッグでは変更されません）。</p>
     </div>
 
     <div class="panel">
@@ -165,14 +194,7 @@
     <div class="panel">
       <h2>④ 操作</h2>
       <div class="row">
-        <button class="btn" id="startBtn">▶ スタート</button>
-        <button class="btn secondary" id="resetBtn">⟲ リセット</button>
-      </div>
-      <div class="row">
-        <button class="btn" id="pauseBtn">⏸ 一時停止</button>
-        <button class="btn danger" id="clearTrailBtn">軌跡クリア</button>
-      </div>
-      <div class="row">
+        <!-- 主ボタンはヘッダー。ここはグラフ関連のみ。 -->
         <button class="btn" id="plotVxBtn">V-x グラフ</button>
         <button class="btn" id="plotVyBtn">V-y グラフ</button>
       </div>
@@ -180,7 +202,7 @@
         <button class="btn secondary" id="hideGraphBtn">グラフ非表示/クリア</button>
         <span class="small" id="graphInfo"></span>
       </div>
-      <p class="small">ホイール＝ズーム、ドラッグ＝パン、ダブルクリック＝リセット／スペース＝再生/一時停止</p>
+      <p class="small">ホイール＝（キャンバス）拡大縮小／（グラフ）拡大縮小、<b>ドラッグ＝（キャンバス）パン／（グラフ）パン</b>、ダブルクリック＝グラフリセット／スペース＝再生/一時停止</p>
     </div>
   </aside>
 
@@ -198,6 +220,24 @@
 (() => {
   'use strict';
 
+  // ===== number formatting: decimal only (no exponent) =====
+  const nf = new Intl.NumberFormat('en-US', { useGrouping:false, maximumFractionDigits:12 });
+  const fmt = (n) => {
+    if (Number.isNaN(n)) return '';
+    if (!Number.isFinite(n)) return String(n);
+    if (Math.abs(n) > 0 && Math.abs(n) < 1e-12) return '0.000000000000';
+    return nf.format(n);
+  };
+  const normalizeInputDisplay = (inp) => {
+    if (!inp) return;
+    const v = +inp.value; if (!Number.isNaN(v)) inp.value = fmt(v);
+  };
+  function normalizeAllNumberInputs(){ document.querySelectorAll('input[type="number"]').forEach(normalizeInputDisplay); }
+
+  // ===== helpers =====
+  const num = (el, def=0) => (el && !Number.isNaN(+el.value)) ? +el.value : def;
+  const chk = (el, def=false) => el ? !!el.checked : def;
+
   // ===== util: HiDPI canvas =====
   function setupHiDPI(canvas, ctx, cssW, cssH){
     const dpr = Math.max(1, window.devicePixelRatio || 1);
@@ -205,7 +245,7 @@
     canvas.height = Math.round(cssH * dpr);
     canvas.style.width  = cssW + 'px';
     canvas.style.height = cssH + 'px';
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // 以後の描画座標はCSSピクセル基準
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     return dpr;
   }
 
@@ -213,10 +253,13 @@
   const el = (id) => document.getElementById(id);
   const cvs = el('canvas'); const ctx = cvs.getContext('2d');
   const statusEl = el('status'); const tDisp = el('tDisp');
+  const toggleAsideBtn = el('toggleAsideBtn');
 
   const graphWrap = el('graphWrap'); const graph = el('graph'); const gctx = graph.getContext('2d'); const graphInfo = el('graphInfo');
 
   const wIn = el('w'), hIn = el('h'), pxPerMIn = el('pxPerM'), dtIn = el('dt');
+  const autoFitIn = el('autoFit'); const fitNowBtn = el('fitNowBtn');
+
   const arrowScaleEIn  = el('arrowScaleE');
   const arrowScaleFEIn = el('arrowScaleFE');
   const arrowScaleFBIn = el('arrowScaleFB');
@@ -237,35 +280,55 @@
   // ==== constants ====
   const K = 8.9875517923e9;
 
-  // ==== State (含: HiDPI, graph view) ====
+  // ==== State ====
   const state = {
     running:false, t:0,
-    // canvas sizes（CSSピクセル）
-    cvsW: 980, cvsH: 620, dpr: 1,
+    cvsW: num(wIn, 980), cvsH: num(hIn, 620), dpr: 1,
     graphW: 980, graphH: 200, gdpr: 1,
-    pxPerM:+pxPerMIn.value, dt:+dtIn.value,
-    fieldMode:fieldModeSel.value,
-    showGrid:showGridIn.checked, showTrail:showTrailIn.checked,
-    showE:showEIn.checked, showFE:showFEIn.checked, showFB:showFBIn.checked, showF:showFIn.checked, showV:showVIn.checked,
-    showFieldMap:showFieldMapIn.checked, showB:showBIn.checked,
-    arrowScaleE:+arrowScaleEIn.value, arrowScaleFE:+arrowScaleFEIn.value, arrowScaleFB:+arrowScaleFBIn.value, arrowScaleF:+arrowScaleFIn.value,
-    arrowMax:+arrowMaxIn.value,
-    p:{ m:+mIn.value, q:+qIn.value, x:+x0In.value, y:+y0In.value, vx:+vx0In.value, vy:+vy0In.value },
-    uniform:{ Ex:+ExIn.value, Ey:+EyIn.value },
-    points:{ rmin:+rminIn.value, list:[{ Q:1e-6, xQ:0, yQ:0 }] },
-    Bz:+BzIn.value,
+    pxPerM: num(pxPerMIn, 60), dt: num(dtIn, 0.01),
+    viewOx: 0, viewOy: 0,
+    fieldMode: fieldModeSel?.value || 'uniform',
+    showGrid:     chk(showGridIn, true),
+    showTrail:    chk(showTrailIn, true),
+    showE:        chk(showEIn, true),
+    showFE:       chk(showFEIn, true),
+    showFB:       chk(showFBIn, true),
+    showF:        chk(showFIn, true),
+    showV:        chk(showVIn, true),
+    showFieldMap: chk(showFieldMapIn, false),
+    showB:        chk(showBIn, true),
+    arrowScaleE:  num(arrowScaleEIn, 0.06),
+    arrowScaleFE: num(arrowScaleFEIn, 200000),
+    arrowScaleFB: num(arrowScaleFBIn, 50000000),
+    arrowScaleF:  num(arrowScaleFIn, 200000),
+    arrowMax:     num(arrowMaxIn, 0),
+    p:{ m:num(mIn, 0.000001), q:num(qIn, 0.000001), x:num(x0In, -3), y:num(y0In, 0), vx:num(vx0In, 4), vy:num(vy0In, 0) },
+    uniform:{ Ex:num(ExIn, 0), Ey:num(EyIn, 500) },
+    points:{ rmin:num(rminIn, 0.05), list:[{ Q:0.000001, xQ:0, yQ:0 }] },
+    Bz: num(BzIn, 0),
     trail:[], graphMode:null,
-    // グラフのズーム・パン（x, y それぞれ保持）
     graphView:{ x:{ center:0, zoom:1 }, y:{ center:0, zoom:1 } }
   };
 
   // ==== size helpers ====
-  function setCanvasSize(){
-    const W = Math.max(300, +wIn.value|0), H = Math.max(300, +hIn.value|0);
+  function canvasContainerWidth(){
+    const wrap = document.querySelector('section.canvas-wrap');
+    return Math.max(300, Math.floor(wrap?.clientWidth || 980));
+  }
+  function fitCanvasWidthToContainer(){
+    const targetW = canvasContainerWidth();
+    if (wIn) { wIn.value = targetW; normalizeInputDisplay(wIn); }
+  }
+  function setupHiDpiAndSizes(){
+    const W = Math.max(300, (wIn ? (+wIn.value|0) : 980));
+    const H = Math.max(300, (hIn ? (+hIn.value|0) : 620));
     state.cvsW = W; state.cvsH = H;
     state.dpr = setupHiDPI(cvs, ctx, W, H);
-    // グラフ横幅はキャンバスに追従
     setGraphSize(state.graphH);
+  }
+  function setCanvasSize(){
+    if (chk(autoFitIn, false)) fitCanvasWidthToContainer();
+    setupHiDpiAndSizes();
   }
   function setGraphSize(cssH){
     state.graphW = state.cvsW;
@@ -274,9 +337,15 @@
   }
 
   // ==== coord transforms ====
-  const cvW = ()=>state.cvsW, cvH = ()=>state.cvsH; // CSS px
-  function worldToCanvas(xm,ym){ const s=state.pxPerM; return [cvW()/2 + xm*s, cvH()/2 - ym*s]; }
-  function canvasToWorld(cx,cy){ const s=state.pxPerM; return [(cx - cvW()/2)/s, (cvH()/2 - cy)/s]; }
+  const cvW = ()=>state.cvsW, cvH = ()=>state.cvsH;
+  function worldToCanvas(xm,ym){
+    const s=state.pxPerM;
+    return [cvW()/2 + state.viewOx + xm*s, cvH()/2 + state.viewOy - ym*s];
+  }
+  function canvasToWorld(cx,cy){
+    const s=state.pxPerM;
+    return [(cx - (cvW()/2 + state.viewOx))/s, ((cvH()/2 + state.viewOy) - cy)/s];
+  }
 
   // ==== Charges UI ====
   function renderChargesUI(){
@@ -286,29 +355,40 @@
     state.points.list.forEach((c,i)=>{
       const tr=document.createElement('tr');
       tr.innerHTML=`<td>${i+1}</td>
-        <td><input type="number" step="1e-7" value="${c.Q}"></td>
-        <td><input type="number" step="0.1" value="${c.xQ}"></td>
-        <td><input type="number" step="0.1" value="${c.yQ}"></td>
+        <td><input type="number" step="0.0000001" value="${fmt(c.Q)}"></td>
+        <td><input type="number" step="0.1" value="${fmt(c.xQ)}"></td>
+        <td><input type="number" step="0.1" value="${fmt(c.yQ)}"></td>
         <td><button class="btn danger" data-act="remove" data-idx="${i}">×</button></td>`;
       tbody.appendChild(tr);
     });
-    chargesHost.innerHTML=''; chargesHost.appendChild(tbl);
+    const host = document.getElementById('chargesHost');
+    if (host){ host.innerHTML=''; host.appendChild(tbl); }
+    tbl.querySelectorAll('input[type="number"]').forEach(inp=>{
+      inp.addEventListener('change', ()=> normalizeInputDisplay(inp));
+      inp.addEventListener('blur',   ()=> normalizeInputDisplay(inp));
+    });
   }
   function syncChargesFromUI(){
-    const rows=chargesHost.querySelectorAll('tbody tr'); const arr=[];
-    rows.forEach(row=>{ const ins=row.querySelectorAll('input'); arr.push({ Q:+ins[0].value, xQ:+ins[1].value, yQ:+ins[2].value }); });
-    state.points.list=arr; state.points.rmin=+rminIn.value;
+    const host = document.getElementById('chargesHost');
+    if (!host) return;
+    const rows=host.querySelectorAll('tbody tr'); const arr=[];
+    rows.forEach(row=>{
+      const ins=row.querySelectorAll('input');
+      arr.push({ Q:+ins[0].value, xQ:+ins[1].value, yQ:+ins[2].value });
+    });
+    state.points.list=arr; state.points.rmin=num(rminIn, state.points.rmin);
   }
-  chargesHost?.addEventListener('input',(e)=>{ if(e.target.tagName==='INPUT'){ syncChargesFromUI(); if(!state.running) state.trail=[]; }});
-  chargesHost?.addEventListener('click',(e)=>{ const btn=e.target.closest('button[data-act="remove"]'); if(btn){ state.points.list.splice(+btn.dataset.idx,1); renderChargesUI(); syncChargesFromUI(); }});
-  addChargeBtn?.addEventListener('click',()=>{ state.points.list.push({ Q:1e-6, xQ:(Math.random()*2-1)*2, yQ:(Math.random()*2-1)*2 }); renderChargesUI(); syncChargesFromUI(); });
+  document.getElementById('chargesHost')?.addEventListener('input',(e)=>{ if(e.target.tagName==='INPUT'){ syncChargesFromUI(); if(!state.running) state.trail=[]; }});
+  document.getElementById('chargesHost')?.addEventListener('click',(e)=>{ const btn=e.target.closest('button[data-act="remove"]'); if(btn){ state.points.list.splice(+btn.dataset.idx,1); renderChargesUI(); syncChargesFromUI(); }});
+  document.getElementById('addChargeBtn')?.addEventListener('click',()=>{ state.points.list.push({ Q:0.000001, xQ:(Math.random()*2-1)*2, yQ:(Math.random()*2-1)*2 }); renderChargesUI(); syncChargesFromUI(); });
 
   // ==== Field / Potential ====
+  const Kc = K;
   function fieldAt(x,y){
     if(state.fieldMode==='uniform') return { Ex:state.uniform.Ex, Ey:state.uniform.Ey };
     const rmin=state.points.rmin; let Ex=0,Ey=0;
     for(const c of state.points.list){
-      const rx=x-c.xQ, ry=y-c.yQ; const r=Math.hypot(rx,ry); const rSafe=Math.max(r,rmin); const r3=rSafe*rSafe*rSafe; const kQ=K*c.Q;
+      const rx=x-c.xQ, ry=y-c.yQ; const r=Math.hypot(rx,ry); const rSafe=Math.max(r,rmin); const r3=rSafe*rSafe*rSafe; const kQ=Kc*c.Q;
       Ex+=kQ*rx/r3; Ey+=kQ*ry/r3;
     }
     return { Ex,Ey };
@@ -316,7 +396,7 @@
   function potentialAt(x,y){
     if(state.fieldMode==='uniform') return -(state.uniform.Ex*x + state.uniform.Ey*y);
     const rmin=state.points.rmin; let V=0;
-    for(const c of state.points.list){ const r=Math.hypot(x-c.xQ,y-c.yQ); V+=K*c.Q/Math.max(r,rmin); }
+    for(const c of state.points.list){ const r=Math.hypot(x-c.xQ,y-c.yQ); V+=Kc*c.Q/Math.max(r,rmin); }
     return V;
   }
 
@@ -331,17 +411,19 @@
     if(state.showTrail){ state.trail.push([p.x,p.y]); if(state.trail.length>2000) state.trail.shift(); }
     state.t+=dt;
 
-    // bounds（CSS px→m）
     const marginM = 0.5*(1/state.pxPerM*40);
     const xMax = (cvW()/2)/state.pxPerM + marginM;
     const yMax = (cvH()/2)/state.pxPerM + marginM;
-    if(Math.abs(p.x)>xMax || Math.abs(p.y)>yMax){ state.running=false; statusEl.textContent='停止 (画面外)'; startBtn.textContent='▶ スタート'; }
+    if(Math.abs(p.x)>xMax || Math.abs(p.y)>yMax){ state.running=false; statusEl.textContent='停止 (画面外)'; startBtn && (startBtn.textContent='▶ スタート'); }
   }
 
   // ==== Drawing ====
-  function drawArrow(cx,cy,vx,vy,{color='#fff',headSize=10,lineWidth=2,maxLen=140}={}){
+  function drawArrow(cx,cy,vx,vy,{color='#fff',headSize=10,lineWidth=2,maxLen=Infinity}={}){
     let len=Math.hypot(vx,vy); if(len<1e-12) return;
-    const s=Math.min(1, maxLen/len); vx*=s; vy*=s;
+    if(Number.isFinite(maxLen) && maxLen>0){
+      const s=Math.min(1, maxLen/len);
+      vx*=s; vy*=s;
+    }
     ctx.save(); ctx.translate(cx,cy);
     ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(vx,vy); ctx.strokeStyle=color; ctx.lineWidth=lineWidth; ctx.stroke();
     const a=Math.atan2(vy,vx);
@@ -357,11 +439,15 @@
     if(!state.showGrid) return;
     const gapPx=Math.max(30,Math.min(100,state.pxPerM));
     ctx.save(); ctx.strokeStyle='#d4ddff'; ctx.lineWidth=1; ctx.globalAlpha=.6;
-    for(let x=Math.floor(cvW()/2 % gapPx); x<cvW(); x+=gapPx){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,cvH()); ctx.stroke(); }
-    for(let y=Math.floor(cvH()/2 % gapPx); y<cvH(); y+=gapPx){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(cvW(),y); ctx.stroke(); }
+    for(let x=Math.floor((cvW()/2 + state.viewOx) % gapPx); x<cvW()+gapPx; x+=gapPx){
+      ctx.beginPath(); ctx.moveTo(x - state.viewOx % gapPx,0); ctx.lineTo(x - state.viewOx % gapPx,cvH()); ctx.stroke();
+    }
+    for(let y=Math.floor((cvH()/2 + state.viewOy) % gapPx); y<cvH()+gapPx; y+=gapPx){
+      ctx.beginPath(); ctx.moveTo(0, y - state.viewOy % gapPx); ctx.lineTo(cvW(), y - state.viewOy % gapPx); ctx.stroke();
+    }
     ctx.strokeStyle='#6b8cff'; ctx.lineWidth=1.5;
-    ctx.beginPath(); ctx.moveTo(0,cvH()/2); ctx.lineTo(cvW(),cvH()/2); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(cvW()/2,0); ctx.lineTo(cvW()/2,cvH()); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, cvH()/2 + state.viewOy); ctx.lineTo(cvW(), cvH()/2 + state.viewOy); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cvW()/2 + state.viewOx, 0); ctx.lineTo(cvW()/2 + state.viewOx, cvH()); ctx.stroke();
     ctx.restore();
   }
 
@@ -384,24 +470,22 @@
       for(let x=gap/2; x<cvW(); x+=gap){
         const [xm,ym]=canvasToWorld(x,y); const {Ex,Ey}=fieldAt(xm,ym);
         if(isFinite(Ex)&&isFinite(Ey))
-          drawArrow(x,y, Ex*s, -Ey*s, { color:'#7fb6ff', lineWidth:1.2, headSize:8, maxLen:Math.max(40, state.arrowMax*0.4) });
+          drawArrow(x,y, Ex*s, -Ey*s, { color:'#7fb6ff', lineWidth:1.2, headSize:8, maxLen:80 });
       }
     }
   }
 
   function drawParticle(){
     const { p }=state; const [cx,cy]=worldToCanvas(p.x,p.y);
-    // body
     ctx.save(); ctx.beginPath(); ctx.arc(cx,cy,6,0,Math.PI*2);
     ctx.fillStyle='#ffd166'; ctx.strokeStyle='#f0a500'; ctx.lineWidth=2; ctx.fill(); ctx.stroke(); ctx.restore();
 
     const { Ex,Ey }=fieldAt(p.x,p.y); const Bz=state.Bz||0;
-
     const Fex = p.q*Ex, Fey = p.q*Ey;
     const Fbx = p.q*(p.vy*Bz), Fby = p.q*(-p.vx*Bz);
     const Fx  = Fex + Fbx,  Fy  = Fey + Fby;
 
-    const maxLen = +state.arrowMax;
+    const maxLen = (+state.arrowMax>0) ? +state.arrowMax : Infinity;
 
     if(state.showE)  drawArrow(cx,cy,  Ex*state.arrowScaleE,   -Ey*state.arrowScaleE,   { color:'#2b6bff', lineWidth:2, headSize:12, maxLen });
     if(state.showFE) drawArrow(cx,cy,  Fex*state.arrowScaleFE, -Fey*state.arrowScaleFE, { color:'#18b26a', lineWidth:2, headSize:12, maxLen });
@@ -420,7 +504,7 @@
       const [cx,cy]=worldToCanvas(c.xQ,c.yQ);
       ctx.save(); ctx.beginPath(); ctx.arc(cx,cy,7,0,Math.PI*2);
       ctx.fillStyle=(c.Q>=0)?'#ff6b8a':'#6bf7ff'; ctx.strokeStyle='#fff'; ctx.lineWidth=1.5; ctx.fill(); ctx.stroke();
-      ctx.font='12px system-ui,-apple-system,Segoe UI,Roboto'; ctx.fillStyle='#102040'; ctx.textAlign='center'; ctx.textBaseline='top';
+      ctx.font='12px system-ui,-apple-system, Segoe UI, Roboto'; ctx.fillStyle='#102040'; ctx.textAlign='center'; ctx.textBaseline='top';
       ctx.fillText(c.Q>=0?'+Q':'−Q', cx, cy+8); ctx.restore();
     }
   }
@@ -440,10 +524,51 @@
     drawGrid(); drawBField(); drawFieldMap(); drawTrail(); drawPointCharges(); drawParticle();
   }
 
-  // ==== Graphing with zoom & pan ====
+  // ======== Nice ticks (1-2-5) for graphs ========
+  function niceStep(rawStep){
+    const exp = Math.floor(Math.log10(rawStep));
+    const f = rawStep / Math.pow(10, exp); // [1,10)
+    let nf;
+    if (f <= 1) nf = 1;
+    else if (f <= 2) nf = 2;
+    else if (f <= 5) nf = 5;
+    else nf = 10;
+    return nf * Math.pow(10, exp);
+  }
+  function niceTicks(min, max, maxTicks = 6){
+    if (!isFinite(min) || !isFinite(max)) return {ticks:[0], step:1, niceMin:0, niceMax:0};
+    if (min === max) { const s = Math.pow(10, Math.floor(Math.log10(Math.abs(min)||1))); return {ticks:[min - s, min, min + s], step:s, niceMin:min - s, niceMax:min + s}; }
+    if (min > max) [min, max] = [max, min];
+
+    const range = max - min;
+    const rough = range / Math.max(2, maxTicks-1);
+    const step = niceStep(rough);
+
+    const niceMin = Math.floor(min / step) * step;
+    const niceMax = Math.ceil (max / step) * step;
+
+    // include 0 if in range
+    let ticks = [];
+    for (let v = niceMin; v <= niceMax + 0.5*step; v += step) {
+      // avoid -0
+      const vv = Math.abs(v) < 1e-14 ? 0 : v;
+      ticks.push(vv);
+    }
+    return {ticks, step, niceMin, niceMax};
+  }
+  function formatTick(v, step){
+    // digits from step; clamp 0..6
+    const d = Math.min(6, Math.max(0, -Math.floor(Math.log10(step)) ));
+    let s = v.toFixed(d);
+    // trim trailing zeros
+    if (s.indexOf('.') >= 0) s = s.replace(/\.?0+$/,'');
+    return s;
+  }
+
+  // ==== Graphing ====
   function ensureGraphShown(){
     graphWrap.style.display='block';
-    setGraphSize(state.graphH); // HiDPI適用
+    setGraphSize(state.graphH);
   }
   function hideGraph(){ graphWrap.style.display='none'; gctx.clearRect(0,0,graph.width,graph.height); graphInfo.textContent=''; state.graphMode=null; }
 
@@ -454,15 +579,14 @@
     gctx.clearRect(0,0,W,H);
     const margin = 36;
 
-    // 基本半径（シミュレーション可視域に一致）にズームを適用
     const baseHalfX = (cvW()/2)/state.pxPerM;
     const baseHalfY = (cvH()/2)/state.pxPerM;
     const view = state.graphView[axis];
     const half = (axis==='x' ? baseHalfX : baseHalfY) / Math.max(1e-6, view.zoom);
     const domainMin = view.center - half;
     const domainMax = view.center + half;
-    const range = domainMax - domainMin;
 
+    // sample function values
     const N = 600;
     const xs = new Array(N);
     const Vs = new Array(N);
@@ -471,7 +595,7 @@
     for (let i=0;i<N;i++) {
       const t = i/(N-1);
       let x=0, y=0;
-      if (axis==='x') { x = domainMin + range*t; y = 0; } else { x = 0; y = domainMin + range*t; }
+      if (axis==='x') { x = domainMin + (domainMax-domainMin)*t; y = 0; } else { x = 0; y = domainMin + (domainMax-domainMin)*t; }
       const V = potentialAt(x,y);
       xs[i] = t; Vs[i] = V;
       if (isFinite(V)) { if (V<minV) minV=V; if (V>maxV) maxV=V; }
@@ -480,68 +604,83 @@
     const pad = 0.05*(maxV-minV || 1);
     minV -= pad; maxV += pad;
 
-    // 枠
+    // compute nice ticks
+    const xTicksInfo = niceTicks(domainMin, domainMax, 6);
+    const yTicksInfo = niceTicks(minV, maxV, 6);
+
+    const plotL = margin, plotR = W - margin, plotT = margin, plotB = H - margin;
+    const plotW = plotR - plotL, plotH = plotB - plotT;
+
+    // frame
     gctx.save();
     gctx.fillStyle = '#1c2e66';
     gctx.font = '12px system-ui, -apple-system, Segoe UI, Roboto';
     gctx.strokeStyle = '#b6c4f0';
     gctx.lineWidth = 1;
-    gctx.strokeRect(margin, margin, W-2*margin, H-2*margin);
-    gctx.fillText(axis==='x' ? 'x (m) 軸上の電位 V' : 'y (m) 軸上の電位 V', margin+6, margin-10);
+    gctx.strokeRect(plotL, plotT, plotW, plotH);
+    gctx.fillText(axis==='x' ? 'x (m) 軸上の電位 V' : 'y (m) 軸上の電位 V', plotL+6, plotT-10);
 
-    // 目盛（5等分）
-    for (let k=0;k<=5;k++){
-      const tt = k/5;
-      const xx = margin + tt*(W-2*margin);
-      gctx.beginPath(); gctx.moveTo(xx, H-margin); gctx.lineTo(xx, H-margin+4); gctx.stroke();
-      const coord = (domainMin + range*tt);
-      gctx.fillText(coord.toFixed(2), xx-12, H-margin+16);
-    }
-    for (let k=0;k<=5;k++){
-      const tt = k/5;
-      const yy = H-margin - tt*(H-2*margin);
-      gctx.beginPath(); gctx.moveTo(margin-4, yy); gctx.lineTo(margin, yy); gctx.stroke();
-      const vval = minV + tt*(maxV-minV);
-      gctx.fillText(vval.toExponential(1), 4, yy+4);
+    // X ticks
+    gctx.strokeStyle = '#b6c4f0';
+    for (const xv of xTicksInfo.ticks){
+      if (xv < domainMin-1e-12 || xv > domainMax+1e-12) continue;
+      const tt = (xv - domainMin) / (domainMax - domainMin);
+      const xx = plotL + tt*plotW;
+      gctx.beginPath(); gctx.moveTo(xx, plotB); gctx.lineTo(xx, plotB+4); gctx.stroke();
+      const lbl = formatTick(xv, xTicksInfo.step);
+      gctx.fillText(lbl, xx - 6*lbl.length/2, plotB+16);
     }
 
-    // 0V ライン
+    // Y ticks
+    for (const yv of yTicksInfo.ticks){
+      if (yv < minV-1e-12 || yv > maxV+1e-12) continue;
+      const tt = (yv - minV) / (maxV - minV);
+      const yy = plotB - tt*plotH;
+      gctx.beginPath(); gctx.moveTo(plotL-4, yy); gctx.lineTo(plotL, yy); gctx.stroke();
+      const lbl = formatTick(yv, yTicksInfo.step);
+      gctx.fillText(lbl, 4, yy+4);
+    }
+
+    // 0V line (dashed) if 0 in range
     if (minV<0 && maxV>0) {
-      const y0 = H-margin - (0-minV)/(maxV-minV)*(H-2*margin);
+      const tt0 = (0 - minV) / (maxV - minV);
+      const y0 = plotB - tt0*plotH;
       gctx.strokeStyle = 'rgba(64,80,160,0.25)';
       gctx.setLineDash([6,6]);
-      gctx.beginPath(); gctx.moveTo(margin, y0); gctx.lineTo(W-margin, y0); gctx.stroke();
+      gctx.beginPath(); gctx.moveTo(plotL, y0); gctx.lineTo(plotR, y0); gctx.stroke();
       gctx.setLineDash([]);
     }
 
-    // 点電荷の位置投影
+    // point-charge projection lines (for context)
     if (state.fieldMode==='points') {
       gctx.setLineDash([4,4]);
       for (const c of state.points.list) {
         let value = (axis==='x') ? c.xQ : c.yQ;
-        let tproj = (value - domainMin) / range;
-        if (tproj>=0 && tproj<=1) {
-          const xx = margin + tproj*(W-2*margin);
-          gctx.strokeStyle = c.Q>=0 ? '#ff8aa6' : '#7fe8ff';
-          gctx.beginPath(); gctx.moveTo(xx, margin); gctx.lineTo(xx, H-margin); gctx.stroke();
-        }
+        if (value < domainMin || value > domainMax) continue;
+        const tt = (value - domainMin) / (domainMax - domainMin);
+        const xx = plotL + tt*plotW;
+        gctx.strokeStyle = c.Q>=0 ? '#ff8aa6' : '#7fe8ff';
+        gctx.beginPath(); gctx.moveTo(xx, plotT); gctx.lineTo(xx, plotB); gctx.stroke();
       }
       gctx.setLineDash([]);
     }
 
-    // 曲線
+    // curve
     gctx.strokeStyle = '#3355aa';
     gctx.lineWidth = 1.8;
     gctx.beginPath();
     for (let i=0;i<N;i++){
-      const xx = margin + xs[i]*(W-2*margin);
-      const yy = H-margin - (Vs[i]-minV)/(maxV-minV)*(H-2*margin);
+      const xx = plotL + xs[i]*plotW;
+      const yy = plotB - (Vs[i]-minV)/(maxV-minV)*plotH;
       if (i===0) gctx.moveTo(xx,yy); else gctx.lineTo(xx,yy);
     }
     gctx.stroke();
     gctx.restore();
 
-    graphInfo.textContent = `Vの範囲: [${minV.toExponential(2)}, ${maxV.toExponential(2)}] ／ ${axis}∈[${domainMin.toFixed(2)}, ${domainMax.toFixed(2)}] m`;
+    // info text (use tick-based formatting)
+    const rngX = `${formatTick(domainMin, xTicksInfo.step)} .. ${formatTick(domainMax, xTicksInfo.step)}`;
+    const rngY = `${formatTick(minV, yTicksInfo.step)} .. ${formatTick(maxV, yTicksInfo.step)}`;
+    graphInfo.textContent = `Vの範囲: [${rngY}] ／ ${axis}∈[${rngX}]`;
   }
 
   // ==== Graph interactions ====
@@ -549,56 +688,42 @@
   graph.addEventListener('mousedown',(e)=>{ if(!state.graphMode) return; dragging=true; lastX=e.clientX; graph.classList.add('dragging'); });
   window.addEventListener('mouseup',()=>{ dragging=false; graph.classList.remove('dragging'); });
   graph.addEventListener('mouseleave',()=>{ dragging=false; graph.classList.remove('dragging'); });
-
   graph.addEventListener('mousemove',(e)=>{
     if(!dragging || !state.graphMode) return;
     const axis = state.graphMode;
     const view = state.graphView[axis];
     const dx = e.clientX - lastX; lastX = e.clientX;
-
     const baseHalf = (axis==='x' ? (cvW()/2)/state.pxPerM : (cvH()/2)/state.pxPerM);
     const half = baseHalf / Math.max(1e-6, view.zoom);
     const range = 2*half;
     const margin = 36;
     const plotW = Math.max(10, state.graphW - 2*margin);
     const delta = dx * range / plotW;
-
-    // ドラッグ方向と直感が合うよう「-」を付与
     view.center -= delta;
     plotPotential(axis);
   });
-
-  // ホイールズーム（カーソル位置を保ちながら）
   graph.addEventListener('wheel',(e)=>{
     if(!state.graphMode) return;
     e.preventDefault();
     const axis = state.graphMode;
     const view = state.graphView[axis];
-    const factor = Math.exp(-e.deltaY * 0.0015); // 上で拡大
+    const factor = Math.exp(-e.deltaY * 0.0015);
     const zoomMin = 0.2, zoomMax = 100;
     const oldZoom = view.zoom;
     const newZoom = Math.min(zoomMax, Math.max(zoomMin, oldZoom * factor));
-
-    // カーソル位置（0..1, プロット領域内）
     const rect = graph.getBoundingClientRect();
     const margin = 36;
     const x = Math.min(Math.max(e.clientX - rect.left, margin), state.graphW - margin);
     const t = (x - margin) / Math.max(1, (state.graphW - 2*margin));
-
-    // ズーム中心をカーソルデータに合わせる
     const baseHalf = (axis==='x' ? (cvW()/2)/state.pxPerM : (cvH()/2)/state.pxPerM);
     const oldHalf = baseHalf / Math.max(1e-6, oldZoom);
     const newHalf = baseHalf / Math.max(1e-6, newZoom);
     const oldMin = view.center - oldHalf;
     const valueUnderCursor = oldMin + 2*oldHalf*t;
-
     view.zoom = newZoom;
     view.center = valueUnderCursor - (2*t - 1) * newHalf;
-
     plotPotential(axis);
   }, {passive:false});
-
-  // ダブルクリックでリセット
   graph.addEventListener('dblclick', ()=>{
     if(!state.graphMode) return;
     const v = state.graphView[state.graphMode];
@@ -606,50 +731,140 @@
     plotPotential(state.graphMode);
   });
 
-  // ==== UI wiring ====
-  function readControlsToStateForReset(){
-    state.pxPerM=+pxPerMIn.value; state.dt=+dtIn.value;
-    state.arrowScaleE=+arrowScaleEIn.value; state.arrowScaleFE=+arrowScaleFEIn.value; state.arrowScaleFB=+arrowScaleFBIn.value; state.arrowScaleF=+arrowScaleFIn.value;
-    state.arrowMax=+arrowMaxIn.value;
-    state.showGrid=showGridIn.checked; state.showTrail=showTrailIn.checked;
-    state.showE=showEIn.checked; state.showFE=showFEIn.checked; state.showFB=showFBIn.checked; state.showF=showFIn.checked; state.showV=showVIn.checked;
-    state.showFieldMap=showFieldMapIn.checked; state.showB=showBIn.checked;
+  // ==== Canvas: Wheel zoom + Drag pan（クリックと分離） ====
+  cvs.addEventListener('wheel', (e)=>{
+    e.preventDefault();
+    const rect = cvs.getBoundingClientRect();
+    const cx = e.clientX - rect.left;
+    const cy = e.clientY - rect.top;
+    const [wx, wy] = canvasToWorld(cx, cy);
+    const factor = Math.exp(-e.deltaY * 0.0015);
+    const oldS = state.pxPerM;
+    const newS = Math.min(+((pxPerMIn && pxPerMIn.max) || 2000), Math.max(+((pxPerMIn && pxPerMIn.min) || 5), oldS * factor));
+    if (newS === oldS) return;
+    state.pxPerM = newS;
+    if (pxPerMIn) pxPerMIn.value = fmt(newS);
+    const newOx = cx - cvW()/2 - wx*newS;
+    const newOy = cy - cvH()/2 + wy*newS;
+    state.viewOx = newOx;
+    state.viewOy = newOy;
+  }, {passive:false});
 
-    state.p={ m:+mIn.value, q:+qIn.value, x:+x0In.value, y:+y0In.value, vx:+vx0In.value, vy:+vy0In.value };
-    state.fieldMode=fieldModeSel.value; state.uniform={ Ex:+ExIn.value, Ey:+EyIn.value }; state.Bz=+BzIn.value; syncChargesFromUI();
-    state.trail=[]; state.t=0;
-  }
-  function resetFromInputs(){ state.running=false; readControlsToStateForReset(); startBtn.textContent='▶ スタート'; }
-  function toggleFieldPanels(){ const mode=fieldModeSel.value; if(mode==='uniform'){ uniformWrap.style.display=''; pointsWrap.style.display='none'; } else { uniformWrap.style.display='none'; pointsWrap.style.display=''; } }
+  const DRAG_THRESHOLD = 5; // px
+  let draggingCanvas = false;
+  let dragStartX = 0, dragStartY = 0;
+  let lastCX = 0, lastCY = 0;
+  let movedDuringDrag = false;
 
-  cvs.addEventListener('click',(e)=>{
-    if(state.running) return;
-    const rect=cvs.getBoundingClientRect();
-    const [xm,ym]=canvasToWorld(e.clientX-rect.left,e.clientY-rect.top);
-    x0In.value=xm.toFixed(3); y0In.value=ym.toFixed(3);
-    resetFromInputs();
+  cvs.addEventListener('mousedown', (e)=>{
+    if (e.button !== 0) return;
+    const rect = cvs.getBoundingClientRect();
+    draggingCanvas = true;
+    dragStartX = lastCX = e.clientX - rect.left;
+    dragStartY = lastCY = e.clientY - rect.top;
+    movedDuringDrag = false;
+    cvs.classList.add('dragging');
   });
 
-  startBtn.addEventListener('click',()=>{ if(state.running) return; readControlsToStateForReset(); state.running=true; startBtn.textContent='▶ 再スタート'; });
-  pauseBtn.addEventListener('click',()=>{ state.running=false; });
-  resetBtn.addEventListener('click',()=>{ resetFromInputs(); if(state.graphMode) plotPotential(state.graphMode); });
-  clearTrailBtn.addEventListener('click',()=>{ state.trail=[]; });
-  plotVxBtn.addEventListener('click',()=>{ plotPotential('x'); });
-  plotVyBtn.addEventListener('click',()=>{ plotPotential('y'); });
-  hideGraphBtn.addEventListener('click', hideGraph);
+  window.addEventListener('mousemove', (e)=>{
+    if (!draggingCanvas) return;
+    const rect = cvs.getBoundingClientRect();
+    const cx = e.clientX - rect.left;
+    const cy = e.clientY - rect.top;
+    const dx = cx - lastCX;
+    const dy = cy - lastCY;
+    lastCX = cx; lastCY = cy;
+    if (!movedDuringDrag) {
+      const dist = Math.hypot(cx - dragStartX, cy - dragStartY);
+      if (dist > DRAG_THRESHOLD) movedDuringDrag = true;
+    }
+    state.viewOx += dx;
+    state.viewOy += dy;
+  });
+
+  window.addEventListener('mouseup', (e)=>{
+    if (!draggingCanvas) return;
+    draggingCanvas = false;
+    cvs.classList.remove('dragging');
+    if (!movedDuringDrag && !state.running) {
+      const rect = cvs.getBoundingClientRect();
+      const cx = e.clientX - rect.left;
+      const cy = e.clientY - rect.top;
+      const [xm, ym] = canvasToWorld(cx, cy);
+      if (x0In) x0In.value = (+xm).toFixed(3);
+      if (y0In) y0In.value = (+ym).toFixed(3);
+      resetFromInputs();
+    }
+  });
+
+  cvs.addEventListener('mouseleave', ()=>{
+    draggingCanvas = false;
+    cvs.classList.remove('dragging');
+  });
+
+  // ==== UI wiring ====
+  function readControlsToStateForReset(){
+    state.pxPerM=num(pxPerMIn, state.pxPerM); state.dt=num(dtIn, state.dt);
+    state.arrowScaleE=num(arrowScaleEIn, state.arrowScaleE); state.arrowScaleFE=num(arrowScaleFEIn, state.arrowScaleFE);
+    state.arrowScaleFB=num(arrowScaleFBIn, state.arrowScaleFB); state.arrowScaleF=num(arrowScaleFIn, state.arrowScaleF);
+    state.arrowMax=num(arrowMaxIn, state.arrowMax);
+
+    state.showGrid=chk(showGridIn, state.showGrid); state.showTrail=chk(showTrailIn, state.showTrail);
+    state.showE=chk(showEIn, state.showE); state.showFE=chk(showFEIn, state.showFE); state.showFB=chk(showFBIn, state.showFB);
+    state.showF=chk(showFIn, state.showF); state.showV=chk(showVIn, state.showV); state.showFieldMap=chk(showFieldMapIn, state.showFieldMap);
+    state.showB=chk(showBIn, state.showB);
+
+    state.p={ m:num(mIn, state.p.m), q:num(qIn, state.p.q), x:num(x0In, state.p.x), y:num(y0In, state.p.y), vx:num(vx0In, state.p.vx), vy:num(vy0In, state.p.vy) };
+    state.fieldMode=fieldModeSel?.value || state.fieldMode; state.uniform={ Ex:num(ExIn, state.uniform.Ex), Ey:num(EyIn, state.uniform.Ey) };
+    state.Bz=num(BzIn, state.Bz); syncChargesFromUI?.();
+    state.trail=[]; state.t=0;
+    normalizeAllNumberInputs();
+  }
+  function resetFromInputs(){ state.running=false; readControlsToStateForReset(); if(startBtn) startBtn.textContent='▶ スタート'; }
+  function toggleFieldPanels(){ const mode=fieldModeSel?.value || 'uniform'; if(mode==='uniform'){ uniformWrap.style.display=''; pointsWrap.style.display='none'; } else { uniformWrap.style.display='none'; pointsWrap.style.display=''; } }
+
+  // サイドパネル開閉
+  function toggleAside(){
+    document.body.classList.toggle('hide-aside');
+    setTimeout(()=>{ autoFitIfNeeded(); if(state.graphMode) plotPotential(state.graphMode); }, 0);
+  }
+  toggleAsideBtn?.addEventListener('click', toggleAside);
+
+  // 自動フィット
+  function autoFitIfNeeded(){ if (chk(autoFitIn, false)){ fitCanvasWidthToContainer(); setupHiDpiAndSizes(); if(state.graphMode) setGraphSize(state.graphH); } }
+  fitNowBtn?.addEventListener('click', ()=>{ fitCanvasWidthToContainer(); setupHiDpiAndSizes(); if(state.graphMode) setGraphSize(state.graphH); });
+
+  startBtn?.addEventListener('click',()=>{ if(state.running) return; readControlsToStateForReset(); state.running=true; startBtn.textContent='▶ 再スタート'; });
+  pauseBtn?.addEventListener('click',()=>{ state.running=false; });
+  resetBtn?.addEventListener('click',()=>{ state.viewOx=0; state.viewOy=0; resetFromInputs(); if(state.graphMode) plotPotential(state.graphMode); });
+  clearTrailBtn?.addEventListener('click',()=>{ state.trail=[]; });
+
+  plotVxBtn?.addEventListener('click',()=>{ plotPotential('x'); });
+  plotVyBtn?.addEventListener('click',()=>{ plotPotential('y'); });
+  hideGraphBtn?.addEventListener('click', hideGraph);
 
   [wIn,hIn,pxPerMIn,dtIn,arrowScaleEIn,arrowScaleFEIn,arrowScaleFBIn,arrowScaleFIn,arrowMaxIn,
-   ExIn,EyIn,BzIn,showGridIn,showTrailIn,showEIn,showFEIn,showFBIn,showFIn,showVIn,showFieldMapIn,showBIn]
-    .forEach(inp=>inp.addEventListener('input',()=>{ readControlsToStateForReset(); if(state.graphMode) plotPotential(state.graphMode); }));
+   ExIn,EyIn,BzIn,showGridIn,showTrailIn,showEIn,showFEIn,showFBIn,showFIn,showVIn,showFieldMapIn,showBIn,
+   mIn,qIn,x0In,y0In,vx0In,vy0In,rminIn]
+    .forEach(inp=>{
+      inp?.addEventListener('input',()=>{ readControlsToStateForReset(); if(state.graphMode) plotPotential(state.graphMode); });
+      if (inp && inp.type === 'number') {
+        inp.addEventListener('change', ()=> normalizeInputDisplay(inp));
+        inp.addEventListener('blur',   ()=> normalizeInputDisplay(inp));
+      }
+    });
 
-  fieldModeSel.addEventListener('change',()=>{ toggleFieldPanels(); readControlsToStateForReset(); if(state.graphMode) plotPotential(state.graphMode); });
+  fieldModeSel?.addEventListener('change',()=>{ toggleFieldPanels(); readControlsToStateForReset(); if(state.graphMode) plotPotential(state.graphMode); });
 
   // init
   setCanvasSize();
   renderChargesUI();
   toggleFieldPanels();
-  requestAnimationFrame(function loop(t){
-    // animation
+  normalizeAllNumberInputs();
+  autoFitIfNeeded();
+
+  // loop
+  requestAnimationFrame(function loop(){
     if(state.running){
       const steps = Math.max(1, Math.floor(1/60 / state.dt));
       for(let i=0;i<steps;i++) stepPhysics(state.dt);
@@ -660,9 +875,10 @@
     requestAnimationFrame(loop);
   });
 
-  // dpr変化(ブラウザズーム等)にも追従
-  window.matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`).addEventListener?.('change', setCanvasSize);
-  window.addEventListener('resize', ()=>{ setCanvasSize(); if(state.graphMode) plotPotential(state.graphMode); });
+  // resize / DPR
+  window.matchMedia?.(`(resolution: ${window.devicePixelRatio}dppx)`).addEventListener?.('change', ()=>{ autoFitIfNeeded(); if(state.graphMode) plotPotential(state.graphMode); });
+  window.addEventListener('resize', ()=>{ autoFitIfNeeded(); if(state.graphMode) plotPotential(state.graphMode); });
+
 })();
 </script>
 </body>
